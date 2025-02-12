@@ -1,35 +1,48 @@
-// @ts-check
-import eslint from '@eslint/js';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
+import js from "@eslint/js";
+import { FlatCompat } from "@eslint/eslintrc";
+import globals from "globals";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-export default tseslint.config(
-  {
-    ignores: ['eslint.config.mjs'],
-  },
-  eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  eslintPluginPrettierRecommended,
-  {
+const [
+    { default: typescriptEslintPlugin },
+    { default: tsParser }
+] = await Promise.all([
+    import("@typescript-eslint/eslint-plugin"),
+    import("@typescript-eslint/parser")
+]);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const compat = new FlatCompat({
+    baseDirectory: __dirname,
+    recommendedConfig: js.configs.recommended,
+    allConfig: js.configs.all
+});
+
+export default [{
+    ignores: ["**/.eslintrc.js"],
+}, ...compat.extends(
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
+), {
+    plugins: {
+        "@typescript-eslint": typescriptEslintPlugin,
+    },
+
     languageOptions: {
-      globals: {
-        ...globals.node,
-        ...globals.jest,
-      },
-      ecmaVersion: 5,
-      sourceType: 'module',
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
+        globals: {
+            ...globals.node,
+            ...globals.jest,
+        },
+
+        parser: tsParser,
+        ecmaVersion: 5,
+        sourceType: "module",
+
+        parserOptions: {
+            project: "tsconfig.json",
+            tsconfigRootDir: __dirname,
+        },
     },
-  },
-  {
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn'
-    },
-  },
-);
+}];
