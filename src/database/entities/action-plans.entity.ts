@@ -34,9 +34,6 @@ export default class ActionPlansEntity {
   id: string;
 
   @Column({ type: 'varchar' })
-  email: string;
-
-  @Column({ type: 'varchar' })
   title: string;
 
   @Column({ type: 'varchar' })
@@ -76,7 +73,7 @@ export default class ActionPlansEntity {
   timeCommitment: number;
 
   @Column({ type: 'varchar', name: 'knowledge_application' })
-  knowledgeApplication: number;
+  knowledgeApplication: string;
 
   @Column({ type: 'varchar' })
   rewards: string;
