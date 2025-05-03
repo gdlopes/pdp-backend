@@ -13,12 +13,14 @@ export class CreateTasksTable1745024081620 implements MigrationInterface {
         columns: [
           {
             name: 'id',
-            type: 'int',
+            type: 'varchar',
             isPrimary: true,
+            generationStrategy: 'uuid',
+            default: 'uuid_generate_v4()',
           },
           {
             name: 'action_plan_id',
-            type: 'int',
+            type: 'varchar',
             isNullable: false,
           },
           {

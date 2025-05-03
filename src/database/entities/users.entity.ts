@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity()
+@Entity({ name: 'users' })
 export default class UsersEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ type: 'varchar' })
@@ -11,9 +11,9 @@ export default class UsersEntity {
   @Column({ type: 'varchar', name: 'password_hash' })
   passwordHash: string;
 
-  @Column({ type: 'timestamp', name: 'created_at' })
+  @Column({ type: 'timestamp', name: 'created_at', default: new Date() })
   createdAt: Date;
 
-  @Column({ type: 'timestamp', name: 'updated_at' })
+  @Column({ type: 'timestamp', name: 'updated_at', default: new Date() })
   updatedAt: Date;
 }
