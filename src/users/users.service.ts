@@ -17,9 +17,7 @@ export class UsersService {
     databaseUser.email = createUserDto.email;
     databaseUser.passwordHash = hashSync(createUserDto.password, 10);
 
-    const userAlreadyExists = await this.usersRepository.findOne({
-      where: { email: createUserDto.email },
-    });
+    const userAlreadyExists = await this.findUserByEmail(createUserDto.email);
 
     if (userAlreadyExists) throw new ConflictException('User already exists.');
 
@@ -27,5 +25,13 @@ export class UsersService {
       await this.usersRepository.save<UsersEntity>(databaseUser);
 
     return { id, email };
+  }
+
+  async findUserByEmail(email: string): Promise<UsersEntity | null> {
+    const foundUser = await this.usersRepository.findOne({
+      where: { email },
+    });
+
+    return foundUser;
   }
 }
