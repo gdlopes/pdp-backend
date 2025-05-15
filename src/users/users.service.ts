@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import UsersEntity from '../database/entities/users.entity';
@@ -27,10 +31,20 @@ export class UsersService {
     return { id, email };
   }
 
-  async findUserByEmail(email: string): Promise<UsersEntity | null> {
+  private async findUserByEmail(email: string): Promise<UsersEntity | null> {
     const foundUser = await this.usersRepository.findOne({
       where: { email },
     });
+
+    return foundUser;
+  }
+
+  async validateUserExists(id: string): Promise<UsersEntity | null> {
+    const foundUser = await this.usersRepository.findOne({
+      where: { id },
+    });
+
+    if (!foundUser) throw new BadRequestException('User does not exists.');
 
     return foundUser;
   }
