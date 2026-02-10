@@ -17,6 +17,8 @@ export class ActionPlansService {
   public async create(createActionPlanDto: CreateActionPlanDto) {
     await this.userService.validateUserExists(createActionPlanDto.userId);
 
+    console.log('testing');
+
     const databaseActionPlan = new ActionPlansEntity();
     databaseActionPlan.title = createActionPlanDto.title;
     databaseActionPlan.goal = createActionPlanDto.goal;
