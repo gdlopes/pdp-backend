@@ -1,12 +1,34 @@
-version: '3.8'
+version: '3.9'
 
 services:
-  db:
-    image: postgres:latest
+  api:
+    build:
+      context: .
+      target: builder
+    container_name: pdp_api
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run start:dev
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16-alpine
     container_name: pdp-api-db
+    restart: always
     ports:
       - '5432:5432'
     environment:
       POSTGRES_DB: pdp-api
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
