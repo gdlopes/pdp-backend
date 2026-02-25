@@ -28,7 +28,7 @@ enum ReviewCommitmentEnum {
   MONTHLY = 'MONTHLY',
 }
 
-@Entity()
+@Entity({ name: 'action-plans' })
 export default class ActionPlansEntity {
   @PrimaryGeneratedColumn()
   id: string;
