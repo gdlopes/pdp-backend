@@ -1,12 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { CreateActionPlanDto } from './dto/create-action-plan.dto';
+import { CreateActionPlanDto } from '../dto/create-action-plan.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import ActionPlansEntity from '../database/entities/action-plans.entity';
+import ActionPlansEntity from '../../database/entities/action-plans.entity';
 import { Repository } from 'typeorm';
-import { UsersService } from '../users/users.service';
+import { UsersService } from '../../users/users.service';
 
 @Injectable()
-export class ActionPlansService {
+export class CreateActionPlansService {
   constructor(
     @InjectRepository(ActionPlansEntity)
     private actionPlansRepository: Repository<ActionPlansEntity>,
@@ -14,7 +14,7 @@ export class ActionPlansService {
     private userService: UsersService,
   ) {}
 
-  public async create(createActionPlanDto: CreateActionPlanDto) {
+  public async execute(createActionPlanDto: CreateActionPlanDto) {
     await this.userService.validateUserExists(createActionPlanDto.userId);
 
     const databaseActionPlan = new ActionPlansEntity();

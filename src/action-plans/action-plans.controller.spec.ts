@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ActionPlansController } from './action-plans.controller';
-import { ActionPlansService } from './action-plans.service';
+import { CreateActionPlansService } from './use-cases/create-action-plans.service';
 import {
   CurrentLevelEnum,
   ExpectedLevelEnum,
@@ -9,7 +9,7 @@ import {
 
 describe('ActionPlansController', () => {
   let controller: ActionPlansController;
-  let service: ActionPlansService;
+  let service: CreateActionPlansService;
 
   const createdResponse = { id: '123' };
 
@@ -38,16 +38,16 @@ describe('ActionPlansController', () => {
       controllers: [ActionPlansController],
       providers: [
         {
-          provide: ActionPlansService,
+          provide: CreateActionPlansService,
           useValue: {
-            create: jest.fn().mockResolvedValue(createdResponse),
+            execute: jest.fn().mockResolvedValue(createdResponse),
           },
         },
       ],
     }).compile();
 
     controller = module.get<ActionPlansController>(ActionPlansController);
-    service = module.get<ActionPlansService>(ActionPlansService);
+    service = module.get<CreateActionPlansService>(CreateActionPlansService);
   });
 
   it('should be defined', () => {
@@ -58,6 +58,6 @@ describe('ActionPlansController', () => {
     const response = await controller.create(createActionPlanDto);
 
     expect(response).toEqual(createdResponse);
-    expect(service.create).toHaveBeenCalledWith(createActionPlanDto);
+    expect(service.execute).toHaveBeenCalledWith(createActionPlanDto);
   });
 });

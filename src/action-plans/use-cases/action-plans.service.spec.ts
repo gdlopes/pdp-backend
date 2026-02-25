@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ActionPlansService } from './action-plans.service';
+import { CreateActionPlansService } from './create-action-plans.service';
 import {
   CreateActionPlanDto,
   CurrentLevelEnum,
   ExpectedLevelEnum,
   ReviewCommitmentEnum,
-} from './dto/create-action-plan.dto';
+} from '../dto/create-action-plan.dto';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import ActionPlansEntity from '../database/entities/action-plans.entity';
-import { UsersService } from '../users/users.service';
+import ActionPlansEntity from '../../database/entities/action-plans.entity';
+import { UsersService } from '../../users/users.service';
 import { BadRequestException } from '@nestjs/common';
 
 const actionPlansRepositoryMock = {
@@ -20,12 +20,12 @@ const usersServiceMock = {
 };
 
 describe('ActionPlansService', () => {
-  let service: ActionPlansService;
+  let service: CreateActionPlansService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ActionPlansService,
+        CreateActionPlansService,
         {
           provide: getRepositoryToken(ActionPlansEntity),
           useValue: actionPlansRepositoryMock,
@@ -37,7 +37,7 @@ describe('ActionPlansService', () => {
       ],
     }).compile();
 
-    service = module.get<ActionPlansService>(ActionPlansService);
+    service = module.get<CreateActionPlansService>(CreateActionPlansService);
 
     jest.resetAllMocks();
   });
@@ -46,7 +46,7 @@ describe('ActionPlansService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('#create', () => {
+  describe('#execute', () => {
     const fakeActionPlanData: CreateActionPlanDto = {
       userId: 'fake-user-id',
       title: 'fake-title',
@@ -75,7 +75,7 @@ describe('ActionPlansService', () => {
         .spyOn(usersServiceMock, 'validateUserExists')
         .mockResolvedValueOnce({ id: 'existent-user-id' });
 
-      const result = await service.create(fakeActionPlanData);
+      const result = await service.execute(fakeActionPlanData);
 
       expect(result.id).toBeDefined();
       expect(validateUserSpy).toHaveBeenCalledWith(fakeActionPlanData.userId);
@@ -89,7 +89,7 @@ describe('ActionPlansService', () => {
           Promise.reject(new BadRequestException('User does not exists.')),
         );
 
-      const promise = service.create(fakeActionPlanData);
+      const promise = service.execute(fakeActionPlanData);
 
       await expect(promise).rejects.toThrow('User does not exists.');
       expect(validateUserSpy).toHaveBeenCalledWith(fakeActionPlanData.userId);
