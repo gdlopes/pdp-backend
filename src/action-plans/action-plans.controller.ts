@@ -1,6 +1,6 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { CreateActionPlansService } from './use-cases/create-action-plans.service';
+import { Body, Controller, Post } from '@nestjs/common';
 import { CreateActionPlanDto } from './dto/create-action-plan.dto';
+import { CreateActionPlansService } from './use-cases/create-action-plans.service';
 
 @Controller('action-plans')
 export class ActionPlansController {
