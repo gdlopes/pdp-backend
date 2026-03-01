@@ -89,6 +89,11 @@ export class CreateActionPlansTable1742902163805 implements MigrationInterface {
             isNullable: false,
           },
           {
+            name: 'review_commitment',
+            type: 'varchar',
+            isNullable: false,
+          },
+          {
             name: 'knowledge_application',
             type: 'varchar',
             isNullable: false,

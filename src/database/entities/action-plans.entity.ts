@@ -1,10 +1,10 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
-  JoinColumn,
   CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import UsersEntity from './users.entity';
@@ -28,10 +28,13 @@ enum ReviewCommitmentEnum {
   MONTHLY = 'MONTHLY',
 }
 
-@Entity({ name: 'action-plans' })
+@Entity({ name: 'action_plans' })
 export default class ActionPlansEntity {
   @PrimaryGeneratedColumn()
   id: string;
+
+  @Column({ type: 'varchar', name: 'user_id' })
+  userId: string;
 
   @Column({ type: 'varchar' })
   title: string;

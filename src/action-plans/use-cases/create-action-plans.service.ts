@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { CreateActionPlanDto } from '../dto/create-action-plan.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import ActionPlansEntity from '../../database/entities/action-plans.entity';
 import { Repository } from 'typeorm';
+import ActionPlansEntity from '../../database/entities/action-plans.entity';
 import { UsersService } from '../../users/users.service';
+import { CreateActionPlanDto } from '../dto/create-action-plan.dto';
 
 @Injectable()
 export class CreateActionPlansService {
@@ -18,6 +18,7 @@ export class CreateActionPlansService {
     await this.userService.validateUserExists(createActionPlanDto.userId);
 
     const databaseActionPlan = new ActionPlansEntity();
+    databaseActionPlan.userId = createActionPlanDto.userId;
     databaseActionPlan.title = createActionPlanDto.title;
     databaseActionPlan.goal = createActionPlanDto.goal;
     databaseActionPlan.alignmentWithLifeCareer =
