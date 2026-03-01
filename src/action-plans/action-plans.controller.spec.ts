@@ -1,17 +1,24 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ActionPlansController } from './action-plans.controller';
-import { CreateActionPlansService } from './use-cases/create-action-plans.service';
 import {
   CurrentLevelEnum,
   ExpectedLevelEnum,
   ReviewCommitmentEnum,
 } from './dto/create-action-plan.dto';
+import { CreateActionPlansService } from './use-cases/create-action-plans.service';
+import { GetActionPlansByUserIdService } from './use-cases/get-action-plans-by-user-id.service';
 
 describe('ActionPlansController', () => {
   let controller: ActionPlansController;
-  let service: CreateActionPlansService;
+  let createService: CreateActionPlansService;
+  let getByUserIdService: GetActionPlansByUserIdService;
 
   const createdResponse = { id: '123' };
+
+  const fakeActionPlans = [
+    { id: 'plan-1', userId: 'user-123', title: 'Plano 1' },
+    { id: 'plan-2', userId: 'user-123', title: 'Plano 2' },
+  ];
 
   const createActionPlanDto = {
     userId: 'user-123',
@@ -43,11 +50,22 @@ describe('ActionPlansController', () => {
             execute: jest.fn().mockResolvedValue(createdResponse),
           },
         },
+        {
+          provide: GetActionPlansByUserIdService,
+          useValue: {
+            execute: jest.fn().mockResolvedValue(fakeActionPlans),
+          },
+        },
       ],
     }).compile();
 
     controller = module.get<ActionPlansController>(ActionPlansController);
-    service = module.get<CreateActionPlansService>(CreateActionPlansService);
+    createService = module.get<CreateActionPlansService>(
+      CreateActionPlansService,
+    );
+    getByUserIdService = module.get<GetActionPlansByUserIdService>(
+      GetActionPlansByUserIdService,
+    );
   });
 
   it('should be defined', () => {
@@ -58,6 +76,14 @@ describe('ActionPlansController', () => {
     const response = await controller.create(createActionPlanDto);
 
     expect(response).toEqual(createdResponse);
-    expect(service.execute).toHaveBeenCalledWith(createActionPlanDto);
+    expect(createService.execute).toHaveBeenCalledWith(createActionPlanDto);
+  });
+
+  it('GET action-plans findByUserId', async () => {
+    const userId = 'user-123';
+    const response = await controller.findByUserId(userId);
+
+    expect(response).toEqual(fakeActionPlans);
+    expect(getByUserIdService.execute).toHaveBeenCalledWith(userId);
   });
 });
