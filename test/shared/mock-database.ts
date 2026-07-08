@@ -2,10 +2,10 @@ import {
   PostgreSqlContainer,
   StartedPostgreSqlContainer,
 } from '@testcontainers/postgresql';
-import UsersEntity from '../src/database/entities/users.entity';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { EntityClass } from './types';
 
-export const setupMockDatabase = async () => {
+export const setupMockDatabase = async (entities: EntityClass[]) => {
   const postgresContainer = await new PostgreSqlContainer()
     .withDatabase('testdb')
     .withUsername('testuser')
@@ -22,7 +22,7 @@ export const setupMockDatabase = async () => {
     username: container.getUsername(),
     password: container.getPassword(),
     database: container.getDatabase(),
-    entities: [UsersEntity],
+    entities,
     synchronize: true,
   };
 

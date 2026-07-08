@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserService } from './use-cases';
+import { UsersController } from './users.controller';
 
 describe('UsersController', () => {
   let controller: UsersController;
-  let service: UsersService;
+  let service: CreateUserService;
 
   const createUserDto: CreateUserDto = {
     email: 'test@email.com',
@@ -17,16 +17,16 @@ describe('UsersController', () => {
       controllers: [UsersController],
       providers: [
         {
-          provide: UsersService,
+          provide: CreateUserService,
           useValue: {
-            create: jest.fn().mockResolvedValue(createUserDto),
+            execute: jest.fn().mockResolvedValue(createUserDto),
           },
         },
       ],
     }).compile();
 
     controller = module.get<UsersController>(UsersController);
-    service = module.get<UsersService>(UsersService);
+    service = module.get<CreateUserService>(CreateUserService);
   });
 
   it('should be defined', () => {
@@ -42,6 +42,6 @@ describe('UsersController', () => {
     const response = await controller.create(requestBody);
 
     expect(response.email).toEqual(requestBody.email);
-    expect(service.create).toHaveBeenCalled();
+    expect(service.execute).toHaveBeenCalled();
   });
 });

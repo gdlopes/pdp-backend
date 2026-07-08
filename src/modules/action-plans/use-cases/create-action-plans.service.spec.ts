@@ -1,52 +1,52 @@
+import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ActionPlansService } from './action-plans.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import ActionPlansEntity from '../../../database/entities/action-plans.entity';
+import { GetUserByIdService } from '../../users/use-cases/get-user-by-id.service';
 import {
   CreateActionPlanDto,
   CurrentLevelEnum,
   ExpectedLevelEnum,
   ReviewCommitmentEnum,
-} from './dto/create-action-plan.dto';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import ActionPlansEntity from '../database/entities/action-plans.entity';
-import { UsersService } from '../users/users.service';
-import { BadRequestException } from '@nestjs/common';
+} from '../dto/create-action-plan.dto';
+import { CreateActionPlansService } from './create-action-plans.service';
 
 const actionPlansRepositoryMock = {
   save: jest.fn(),
 };
 
-const usersServiceMock = {
-  validateUserExists: jest.fn(),
+const getUserByIdServiceMock = {
+  execute: jest.fn(),
 };
 
-describe('ActionPlansService', () => {
-  let service: ActionPlansService;
+describe('CreateActionPlansService', () => {
+  let service: CreateActionPlansService;
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ActionPlansService,
+        CreateActionPlansService,
         {
           provide: getRepositoryToken(ActionPlansEntity),
           useValue: actionPlansRepositoryMock,
         },
         {
-          provide: UsersService,
-          useValue: usersServiceMock,
+          provide: GetUserByIdService,
+          useValue: getUserByIdServiceMock,
         },
       ],
     }).compile();
 
-    service = module.get<ActionPlansService>(ActionPlansService);
-
-    jest.resetAllMocks();
+    service = module.get<CreateActionPlansService>(CreateActionPlansService);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe('#create', () => {
+  describe('#execute', () => {
     const fakeActionPlanData: CreateActionPlanDto = {
       userId: 'fake-user-id',
       title: 'fake-title',
@@ -68,31 +68,33 @@ describe('ActionPlansService', () => {
     };
 
     it('should create an action plan successfully', async () => {
+      getUserByIdServiceMock.execute.mockResolvedValueOnce({
+        id: 'existent-user-id',
+      });
       jest
         .spyOn(actionPlansRepositoryMock, 'save')
         .mockResolvedValueOnce({ id: '41892581-9e42-4b8d-8309-6c31d8068811' });
-      const validateUserSpy = jest
-        .spyOn(usersServiceMock, 'validateUserExists')
-        .mockResolvedValueOnce({ id: 'existent-user-id' });
 
-      const result = await service.create(fakeActionPlanData);
+      const result = await service.execute(fakeActionPlanData);
 
       expect(result.id).toBeDefined();
-      expect(validateUserSpy).toHaveBeenCalledWith(fakeActionPlanData.userId);
+      expect(getUserByIdServiceMock.execute).toHaveBeenCalledWith(
+        fakeActionPlanData.userId,
+      );
     });
 
     it('should return error when userId does not exists', async () => {
       const saveSpy = jest.spyOn(actionPlansRepositoryMock, 'save');
-      const validateUserSpy = jest
-        .spyOn(usersServiceMock, 'validateUserExists')
-        .mockImplementationOnce(() =>
-          Promise.reject(new BadRequestException('User does not exists.')),
-        );
+      getUserByIdServiceMock.execute.mockRejectedValueOnce(
+        new BadRequestException('User does not exists.'),
+      );
 
-      const promise = service.create(fakeActionPlanData);
+      const promise = service.execute(fakeActionPlanData);
 
       await expect(promise).rejects.toThrow('User does not exists.');
-      expect(validateUserSpy).toHaveBeenCalledWith(fakeActionPlanData.userId);
+      expect(getUserByIdServiceMock.execute).toHaveBeenCalledWith(
+        fakeActionPlanData.userId,
+      );
       expect(saveSpy).not.toHaveBeenCalled();
     });
   });

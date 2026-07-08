@@ -1,21 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersService } from './users.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import UsersEntity from '../database/entities/users.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import UsersEntity from '../../../database/entities/users.entity';
+import { CreateUserDto } from '../dto/create-user.dto';
+import { CreateUserService } from './create-user.service';
 
 const usersRepositoryMock = {
   save: jest.fn(),
   findOne: jest.fn(),
 };
 
-describe('UsersService', () => {
-  let service: UsersService;
+describe('CreateUserService', () => {
+  let service: CreateUserService;
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        UsersService,
+        CreateUserService,
         {
           provide: getRepositoryToken(UsersEntity),
           useValue: usersRepositoryMock,
@@ -23,25 +25,26 @@ describe('UsersService', () => {
       ],
     }).compile();
 
-    service = module.get<UsersService>(UsersService);
+    service = module.get<CreateUserService>(CreateUserService);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe('#create', () => {
+  describe('#execute', () => {
     it('should create users successfully', async () => {
       const fakeCreateUserData: CreateUserDto = {
         email: 'fake@email.com',
         password: 'fake-password',
       };
+      jest.spyOn(usersRepositoryMock, 'findOne').mockResolvedValueOnce(null);
       jest.spyOn(usersRepositoryMock, 'save').mockResolvedValueOnce({
         id: 'some-id',
         email: fakeCreateUserData.email,
       });
 
-      const result = await service.create(fakeCreateUserData);
+      const result = await service.execute(fakeCreateUserData);
 
       expect(result.id).toBeDefined();
       expect(result.email).toEqual(fakeCreateUserData.email);
@@ -57,7 +60,7 @@ describe('UsersService', () => {
         email: fakeExistentUserData.email,
       });
 
-      const promise = service.create(fakeExistentUserData);
+      const promise = service.execute(fakeExistentUserData);
 
       await expect(promise).rejects.toThrow('User already exists.');
     });
