@@ -23,4 +23,4 @@ API: `http://localhost:3000` · Swagger: `http://localhost:3000/api/docs`
 
 ## Stack
 
-NestJS 11 · TypeScript · Fastify · PostgreSQL · TypeORM · Node 22
+NestJS 11 · TypeScript · Fastify · PostgreSQL · TypeORM · Node 24

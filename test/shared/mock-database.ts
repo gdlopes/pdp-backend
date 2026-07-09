@@ -6,11 +6,11 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { EntityClass } from './types';
 
 export const setupMockDatabase = async (entities: EntityClass[]) => {
-  const postgresContainer = await new PostgreSqlContainer()
+  const postgresContainer = await new PostgreSqlContainer('postgres:16')
     .withDatabase('testdb')
     .withUsername('testuser')
     .withPassword('testpass')
-    .withStartupTimeout(30000)
+    .withStartupTimeout(120000)
     .start();
 
   const container: StartedPostgreSqlContainer = postgresContainer;
