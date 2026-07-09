@@ -4,7 +4,7 @@ Guide for running and operating the PDP Backend locally.
 
 ## Prerequisites
 
-- **Node.js 22+** — version pinned in [`.nvmrc`](../.nvmrc)
+- **Node.js 24+** — version pinned in [`.nvmrc`](../.nvmrc)
 - **npm** — comes with Node
 - **Docker** — required for `docker compose` and e2e tests (Testcontainers)
 

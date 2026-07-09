@@ -1,7 +1,7 @@
 # -----------------------------
 # Base
 # -----------------------------
-FROM node:22-slim AS base
+FROM node:24-slim AS base
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
@@ -23,7 +23,7 @@ RUN npm run build
 # -----------------------------
 # Production
 # -----------------------------
-FROM node:22-slim AS production
+FROM node:24-slim AS production
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
