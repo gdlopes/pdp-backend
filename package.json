@@ -24,6 +24,7 @@
     "typeorm": "ts-node ./node_modules/typeorm/cli",
     "migration:create": "npm run typeorm -- migration:create ./src/database/migrations/$npm_config_name",
     "migration:run": "npm run typeorm migration:run -- -d ./src/database/typeOrm.migration-config.ts",
+    "migration:run:prod": "node dist/database/run-migrations.js",
     "migration:revert": "npm run typeorm migration:revert -- -d ./src/database/typeOrm.migration-config.ts"
   },
   "dependencies": {
@@ -36,6 +37,7 @@
     "@nestjs/platform-express": "^11.1.28",
     "@nestjs/platform-fastify": "^11.1.28",
     "@nestjs/swagger": "^11.4.5",
+    "@nestjs/terminus": "^11.1.1",
     "@nestjs/typeorm": "^11.0.3",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",

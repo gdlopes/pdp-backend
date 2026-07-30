@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdp-api
+  namespace: pdp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pdp-api
+  template:
+    metadata:
+      labels:
+        app: pdp-api
+    spec:
+      containers:
+        - name: pdp-api
+          image: gdlopes/pdp-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: pdp-api-config
+            - secretRef:
+                name: pdp-api-secret
+          startupProbe:
+            httpGet:
+              path: /healthcheck/liveness
+              port: 3000
+            failureThreshold: 30
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthcheck/liveness
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthcheck/readiness
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
