@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: pdp
+data:
+  POSTGRES_DB: pdp-api
+  POSTGRES_USER: postgres

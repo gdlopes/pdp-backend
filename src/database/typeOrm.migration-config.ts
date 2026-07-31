@@ -9,6 +9,8 @@ config();
 
 const configService = new ConfigService();
 
+const isCompiled = __filename.endsWith('.js');
+
 const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
   host: configService.get<string>('DATABASE_HOST'),
@@ -17,7 +19,7 @@ const dataSourceOptions: DataSourceOptions = {
   password: configService.get<string>('DATABASE_PASSWORD'),
   database: configService.get<string>('DATABASE_NAME'),
   entities: [UsersEntity, ActionPlansEntity, TasksEntity],
-  migrations: [__dirname + '/migrations/*.ts'],
+  migrations: [__dirname + `/migrations/*.${isCompiled ? 'js' : 'ts'}`],
   synchronize: false,
 };
 
