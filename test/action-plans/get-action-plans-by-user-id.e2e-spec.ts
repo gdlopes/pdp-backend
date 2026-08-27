@@ -2,7 +2,7 @@ import * as request from 'supertest';
 import { NON_EXISTENT_USER_ID } from './mock';
 import { setupActionPlansE2E, teardownActionPlansE2E } from './setup';
 
-describe('ActionPlans - GET /action-plans/:userId', () => {
+describe('ActionPlans - GET /action-plans?userId=', () => {
   jest.setTimeout(120000);
 
   const context = setupActionPlansE2E();
@@ -19,7 +19,7 @@ describe('ActionPlans - GET /action-plans/:userId', () => {
     const { app, userWithActionPlans, seededActionPlan } = await context;
 
     const response = await request(app.getHttpServer()).get(
-      `/action-plans/${userWithActionPlans.id}`,
+      `/action-plans?userId=${userWithActionPlans.id}`,
     );
 
     expect(response.status).toBe(200);
@@ -35,7 +35,7 @@ describe('ActionPlans - GET /action-plans/:userId', () => {
     const { app, userWithoutActionPlans } = await context;
 
     const response = await request(app.getHttpServer()).get(
-      `/action-plans/${userWithoutActionPlans.id}`,
+      `/action-plans?userId=${userWithoutActionPlans.id}`,
     );
 
     expect(response.status).toBe(200);
@@ -46,7 +46,7 @@ describe('ActionPlans - GET /action-plans/:userId', () => {
     const { app } = await context;
 
     const response = await request(app.getHttpServer()).get(
-      `/action-plans/${NON_EXISTENT_USER_ID}`,
+      `/action-plans?userId=${NON_EXISTENT_USER_ID}`,
     );
 
     expect(response.status).toBe(400);

@@ -105,7 +105,7 @@ describe('ActionPlansController', () => {
     const userId = 'user-123';
     const id = 'plan-1';
 
-    const response = await controller.findOne(userId, id);
+    const response = await controller.findOne(id, userId);
 
     expect(response).toEqual(fakeActionPlan);
     expect(getByIdService.execute).toHaveBeenCalledWith(userId, id);

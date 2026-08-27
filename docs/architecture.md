@@ -134,7 +134,7 @@ E2E tests must also use `FastifyAdapter` (see `test/shared/setup-e2e-app.ts`).
 |--------|------|-------------|
 | Healthcheck | `src/modules/healthcheck/` | `GET /healthcheck` |
 | Users | `src/modules/users/` | `POST /users` |
-| Action Plans | `src/modules/action-plans/` | `POST /action-plans`, `GET /action-plans/:userId`, `GET /action-plans/user/:userId/:id` |
+| Action Plans | `src/modules/action-plans/` | `POST /action-plans`, `GET /action-plans?userId=`, `GET /action-plans/:id?userId=` |
 
 Internal use-cases (not exposed via HTTP):
 

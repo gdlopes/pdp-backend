@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import {
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateActionPlanDto } from './dto/create-action-plan.dto';
@@ -37,19 +38,21 @@ export class ActionPlansController {
     return this.createActionPlansService.execute(createActionPlanDto);
   }
 
-  @Get(':userId')
+  @Get()
   @ApiOperation({ summary: 'Gets all action plans by user ID.' })
+  @ApiQuery({ name: 'userId', required: true, type: String })
   @ApiOkResponse({
     description: 'The action plans have been successfully retrieved.',
     type: GetActionPlansByUserIdResponse,
     isArray: true,
   })
-  findByUserId(@Param('userId') userId: string) {
+  findByUserId(@Query('userId') userId: string) {
     return this.getActionPlansByUserIdService.execute(userId);
   }
 
-  @Get('user/:userId/:id')
+  @Get(':id')
   @ApiOperation({ summary: 'Gets an action plan by ID.' })
+  @ApiQuery({ name: 'userId', required: true, type: String })
   @ApiOkResponse({
     description: 'The action plan has been successfully retrieved.',
     type: GetActionPlanByIdResponse,
@@ -57,7 +60,7 @@ export class ActionPlansController {
   @ApiNotFoundResponse({
     description: 'The action plan was not found.',
   })
-  findOne(@Param('userId') userId: string, @Param('id') id: string) {
+  findOne(@Param('id') id: string, @Query('userId') userId: string) {
     return this.getActionPlanByIdService.execute(userId, id);
   }
 }
