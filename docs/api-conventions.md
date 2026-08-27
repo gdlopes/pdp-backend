@@ -64,8 +64,8 @@ Return only fields the client needs. Never expose passwords or internal hashes.
 |----------|----------|
 | `POST /users` | `{ id, email }` |
 | `POST /action-plans` | `{ id }` |
-| `GET /action-plans/:userId` | Array of full action plan objects |
-| `GET /action-plans/user/:userId/:id` | Single action plan object |
+| `GET /action-plans?userId=` | Array of full action plan objects |
+| `GET /action-plans/:id?userId=` | Single action plan object |
 
 For list/detail endpoints that return entities, define Swagger response classes in `swagger/` to document the full shape.
 
@@ -178,11 +178,11 @@ Current action-plans routes:
 
 ```
 POST /action-plans
-GET  /action-plans/:userId
-GET  /action-plans/user/:userId/:id
+GET  /action-plans?userId=
+GET  /action-plans/:id?userId=
 ```
 
-The `user/:userId/:id` pattern avoids clashing with `:userId` for the list endpoint. When adding new routes, consider ordering carefully.
+The list endpoint is the collection (`GET /action-plans`); the detail endpoint is `GET /action-plans/:id`. Declare `@Get()` before `@Get(':id')`. When adding new routes, consider ordering carefully.
 
 ## Related docs
 

@@ -2,7 +2,7 @@ import * as request from 'supertest';
 import { NON_EXISTENT_ACTION_PLAN_ID, NON_EXISTENT_USER_ID } from './mock';
 import { setupActionPlansE2E, teardownActionPlansE2E } from './setup';
 
-describe('ActionPlans - GET /action-plans/user/:userId/:id', () => {
+describe('ActionPlans - GET /action-plans/:id?userId=', () => {
   jest.setTimeout(120000);
 
   const context = setupActionPlansE2E();
@@ -19,7 +19,7 @@ describe('ActionPlans - GET /action-plans/user/:userId/:id', () => {
     const { app, userWithActionPlans, seededActionPlan } = await context;
 
     const response = await request(app.getHttpServer()).get(
-      `/action-plans/user/${userWithActionPlans.id}/${seededActionPlan.id}`,
+      `/action-plans/${seededActionPlan.id}?userId=${userWithActionPlans.id}`,
     );
 
     expect(response.status).toBe(200);
@@ -34,7 +34,7 @@ describe('ActionPlans - GET /action-plans/user/:userId/:id', () => {
     const { app, userWithActionPlans } = await context;
 
     const response = await request(app.getHttpServer()).get(
-      `/action-plans/user/${userWithActionPlans.id}/${NON_EXISTENT_ACTION_PLAN_ID}`,
+      `/action-plans/${NON_EXISTENT_ACTION_PLAN_ID}?userId=${userWithActionPlans.id}`,
     );
 
     expect(response.status).toBe(404);
@@ -47,7 +47,7 @@ describe('ActionPlans - GET /action-plans/user/:userId/:id', () => {
     const { app, userWithoutActionPlans, seededActionPlan } = await context;
 
     const response = await request(app.getHttpServer()).get(
-      `/action-plans/user/${userWithoutActionPlans.id}/${seededActionPlan.id}`,
+      `/action-plans/${seededActionPlan.id}?userId=${userWithoutActionPlans.id}`,
     );
 
     expect(response.status).toBe(404);
@@ -60,7 +60,7 @@ describe('ActionPlans - GET /action-plans/user/:userId/:id', () => {
     const { app, seededActionPlan } = await context;
 
     const response = await request(app.getHttpServer()).get(
-      `/action-plans/user/${NON_EXISTENT_USER_ID}/${seededActionPlan.id}`,
+      `/action-plans/${seededActionPlan.id}?userId=${NON_EXISTENT_USER_ID}`,
     );
 
     expect(response.status).toBe(400);

@@ -148,8 +148,8 @@ Defined in: `src/database/entities/tasks.entity.ts`
 | User must exist | `userId` is validated via `GetUserByIdService` before create or read |
 | Missing user | Returns `400 Bad Request` with message `User does not exists.` |
 | Create response | Returns `{ id }` only |
-| List by user | `GET /action-plans/:userId` returns full action plan objects for that user |
-| Get by id | `GET /action-plans/user/:userId/:id` returns one plan; `404` if not found for that user |
+| List by user | `GET /action-plans?userId=` returns full action plan objects for that user |
+| Get by id | `GET /action-plans/:id?userId=` returns one plan; `404` if not found for that user |
 
 ### Tasks
 
@@ -171,8 +171,8 @@ Defined in: `src/database/entities/tasks.entity.ts`
 | healthcheck | `GET` | `/healthcheck` | `200` |
 | users | `POST` | `/users` | `201`, `409` |
 | action-plans | `POST` | `/action-plans` | `201`, `400` |
-| action-plans | `GET` | `/action-plans/:userId` | `200`, `400` |
-| action-plans | `GET` | `/action-plans/user/:userId/:id` | `200`, `400`, `404` |
+| action-plans | `GET` | `/action-plans?userId=` | `200`, `400` |
+| action-plans | `GET` | `/action-plans/:id?userId=` | `200`, `400`, `404` |
 | tasks | — | — | Not implemented |
 
 Interactive documentation: `http://localhost:3000/api/docs`
