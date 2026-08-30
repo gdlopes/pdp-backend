@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { ActionPlansModule } from './modules/action-plans/action-plans.module';
 import { HealthcheckModule } from './modules/healthcheck/healthcheck.module';
+import { TasksModule } from './modules/tasks/tasks.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -12,6 +13,7 @@ import { UsersModule } from './modules/users/users.module';
     DatabaseModule,
     UsersModule,
     ActionPlansModule,
+    TasksModule,
   ],
   controllers: [],
   providers: [],

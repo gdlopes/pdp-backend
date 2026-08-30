@@ -155,8 +155,14 @@ Defined in: `src/database/entities/tasks.entity.ts`
 
 | Rule | Detail |
 |------|--------|
-| Schema | Table `tasks` exists with FK to `action_plans` |
-| API | **Not implemented** — no module, controller, or endpoints |
+| Parent plan must exist | `actionPlanId` is validated via `FindActionPlanByIdService` on create and list |
+| Missing plan | Returns `400 Bad Request` with message `Action plan does not exists.` |
+| No user identifier | Task endpoints do not accept `userId`; ownership is the parent plan |
+| Create | Status is `NOT_STARTED`; response is `{ id }` |
+| Start | `POST /tasks/:id/start` sets `IN_PROGRESS`; already `IN_PROGRESS` is idempotent; `DONE` returns `400` with `Task is already done.` |
+| Complete | `POST /tasks/:id/complete` sets `DONE` from `IN_PROGRESS`; already `DONE` is idempotent; `NOT_STARTED` returns `400` with `Task has not been started.` |
+| Missing task | Get, start, complete, and delete return `404` with `Task not found.` |
+| Delete | Returns `204 No Content` |
 
 ### Healthcheck
 
@@ -173,7 +179,12 @@ Defined in: `src/database/entities/tasks.entity.ts`
 | action-plans | `POST` | `/action-plans` | `201`, `400` |
 | action-plans | `GET` | `/action-plans?userId=` | `200`, `400` |
 | action-plans | `GET` | `/action-plans/:id?userId=` | `200`, `400`, `404` |
-| tasks | — | — | Not implemented |
+| tasks | `POST` | `/tasks` | `201`, `400` |
+| tasks | `GET` | `/tasks?actionPlanId=` | `200`, `400` |
+| tasks | `GET` | `/tasks/:id` | `200`, `404` |
+| tasks | `POST` | `/tasks/:id/start` | `200`, `400`, `404` |
+| tasks | `POST` | `/tasks/:id/complete` | `200`, `400`, `404` |
+| tasks | `DELETE` | `/tasks/:id` | `204`, `404` |
 
 Interactive documentation: `http://localhost:3000/api/docs`
 
@@ -193,7 +204,6 @@ Document these so agents do not copy incorrect patterns:
 These are implied by the schema or product direction but have no API or OpenSpec requirements yet:
 
 - User authentication (login, JWT/session)
-- Tasks CRUD under an action plan
 - Action plan update and delete
 - Pagination for list endpoints
 

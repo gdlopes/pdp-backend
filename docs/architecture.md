@@ -135,18 +135,19 @@ E2E tests must also use `FastifyAdapter` (see `test/shared/setup-e2e-app.ts`).
 | Healthcheck | `src/modules/healthcheck/` | `GET /healthcheck` |
 | Users | `src/modules/users/` | `POST /users` |
 | Action Plans | `src/modules/action-plans/` | `POST /action-plans`, `GET /action-plans?userId=`, `GET /action-plans/:id?userId=` |
+| Tasks | `src/modules/tasks/` | `POST /tasks`, `GET /tasks?actionPlanId=`, `GET /tasks/:id`, `POST /tasks/:id/start`, `POST /tasks/:id/complete`, `DELETE /tasks/:id` |
 
 Internal use-cases (not exposed via HTTP):
 
 - `GetUserByIdService` — used by action-plans module
 - `GetUserByEmailService` — available but not wired to a controller
+- `FindActionPlanByIdService` — used by tasks module (lookup by id, no `userId`)
 
 ## Current limitations (intentional gaps)
 
 | Area | Status |
 |------|--------|
 | Authentication / authorization | Not implemented — passwords are hashed on user creation only |
-| Tasks API | Entity and migration exist; no module or endpoints yet |
 | Action plan update/delete | Not implemented |
 | Global validation pipe | Not configured — DTO validation is minimal today |
 | OpenAPI export | Runtime-only at `/api/docs` — no committed spec file |
