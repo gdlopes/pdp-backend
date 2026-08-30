@@ -5,6 +5,7 @@ import { UsersModule } from '../users/users.module';
 import { ActionPlansController } from './action-plans.controller';
 import {
   CreateActionPlansService,
+  FindActionPlanByIdService,
   GetActionPlanByIdService,
   GetActionPlansByUserIdService,
 } from './use-cases';
@@ -14,8 +15,10 @@ import {
   imports: [UsersModule, TypeOrmModule.forFeature([ActionPlansEntity])],
   providers: [
     CreateActionPlansService,
+    FindActionPlanByIdService,
     GetActionPlansByUserIdService,
     GetActionPlanByIdService,
   ],
+  exports: [FindActionPlanByIdService],
 })
 export class ActionPlansModule {}

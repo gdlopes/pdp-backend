@@ -10,6 +10,7 @@ Each feature module owns a top-level route prefix matching the domain name:
 |--------|-------------------|---------|
 | users | `/users` | `POST /users` |
 | action-plans | `/action-plans` | `POST /action-plans` |
+| tasks | `/tasks` | `POST /tasks` |
 | healthcheck | `/healthcheck` | `GET /healthcheck` |
 
 Use kebab-case for multi-word resources in URLs.
@@ -35,7 +36,7 @@ Use-case files use kebab-case: `get-action-plan-by-id.service.ts`.
 | Read one | `GET` | `200 OK` | |
 | Read list | `GET` | `200 OK` | Return array |
 | Update | `PUT` or `PATCH` | `200 OK` | Not used yet |
-| Delete | `DELETE` | `204 No Content` | Not used yet |
+| Delete | `DELETE` | `204 No Content` | Used by `DELETE /tasks/:id` |
 
 ### Error responses
 
@@ -66,6 +67,12 @@ Return only fields the client needs. Never expose passwords or internal hashes.
 | `POST /action-plans` | `{ id }` |
 | `GET /action-plans?userId=` | Array of full action plan objects |
 | `GET /action-plans/:id?userId=` | Single action plan object |
+| `POST /tasks` | `{ id }` |
+| `GET /tasks?actionPlanId=` | Array of task objects (`id`, `actionPlanId`, `description`, `status`, `createdAt`, `updatedAt`) |
+| `GET /tasks/:id` | Single task object |
+| `POST /tasks/:id/start` | `{ id, status }` (`IN_PROGRESS`) |
+| `POST /tasks/:id/complete` | `{ id, status }` (`DONE`) |
+| `DELETE /tasks/:id` | Empty body (`204`) |
 
 For list/detail endpoints that return entities, define Swagger response classes in `swagger/` to document the full shape.
 
@@ -182,7 +189,18 @@ GET  /action-plans?userId=
 GET  /action-plans/:id?userId=
 ```
 
-The list endpoint is the collection (`GET /action-plans`); the detail endpoint is `GET /action-plans/:id`. Declare `@Get()` before `@Get(':id')`. When adding new routes, consider ordering carefully.
+Current tasks routes:
+
+```
+POST   /tasks
+GET    /tasks?actionPlanId=
+GET    /tasks/:id
+POST   /tasks/:id/start
+POST   /tasks/:id/complete
+DELETE /tasks/:id
+```
+
+The list endpoint is the collection (`GET /action-plans` / `GET /tasks`); the detail endpoint is `GET /:id`. Declare `@Get()` before `@Get(':id')`. When adding new routes, consider ordering carefully.
 
 ## Related docs
 
