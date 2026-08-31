@@ -1,0 +1,22 @@
+---
+description: Write Conventional Commit messages; never skip git hooks
+alwaysApply: true
+---
+
+# Conventional Commits
+
+When creating a git commit in this repository, the subject MUST follow Conventional Commits:
+
+```
+type(optional-scope): summary
+```
+
+- English, imperative mood (`add`, not `added` or `adds`)
+- Subject around 72 characters; no trailing period
+- Body optional, separated by a blank line
+
+Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+
+Examples: `feat: add task start endpoint`, `fix(users): return 404 when missing`, `ci: run e2e on pull requests`.
+
+Do not pass `--no-verify` or `--no-gpg-sign`. The `commit-msg` hook must run.

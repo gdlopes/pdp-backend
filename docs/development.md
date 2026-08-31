@@ -75,7 +75,8 @@ The API listens on `http://localhost:3000`.
 | `npm test` | Unit tests |
 | `npm run test:e2e` | E2E tests (requires Docker) |
 | `npm run test:cov` | Unit tests with coverage |
-| `npm run lint` | ESLint |
+| `npm run lint` | ESLint (check only; does not rewrite files) |
+| `npm run lint:fix` | ESLint with `--fix` |
 | `npm run format` | Prettier |
 
 ## Database migrations
@@ -103,20 +104,22 @@ http://localhost:3000/api/docs
 
 There is no committed OpenAPI file — the spec is generated from decorators at startup.
 
+## Commits
+
+This repository uses [Conventional Commits](https://www.conventionalcommits.org/). Use `git commit` as usual. A `commit-msg` hook (installed by `npm ci` / `npm install` via `simple-git-hooks`) runs commitlint and rejects subjects that do not match `type(optional-scope): summary`. Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+
+Do not skip the hook (`--no-verify`). After a fresh clone, run `npm ci` so the hook is present.
+
 ## CI
 
-Pull requests to `main` trigger [`.github/workflows/ci.yaml`](../.github/workflows/ci.yaml):
+Pull requests to `main` trigger [`.github/workflows/ci.yaml`](../.github/workflows/ci.yaml). Jobs run in parallel:
 
-1. `npm ci`
-2. `npm test` (unit tests only)
-3. `npm run build`
+1. `npm run lint` (check only; does not rewrite files)
+2. `npm test` (unit tests)
+3. `npm run test:e2e` (Testcontainers; Docker on the runner)
+4. `npm run build`
 
-E2E tests and lint are **not** run in CI today. Run them locally before opening a PR:
-
-```bash
-npm run lint
-npm run test:e2e
-```
+Any failing job fails the workflow.
 
 ## Production build
 

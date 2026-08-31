@@ -9,7 +9,7 @@ Unit and end-to-end test patterns for the PDP Backend.
 | Unit | `src/**/*.spec.ts` | `npm test` | Mocked repositories |
 | E2E | `test/**/*.e2e-spec.ts` | `npm run test:e2e` | PostgreSQL via Testcontainers |
 
-CI (`.github/workflows/ci.yaml`) runs **unit tests only**. Run e2e and lint locally before opening a PR.
+CI (`.github/workflows/ci.yaml`) runs lint, unit tests, e2e tests, and a production build on pull requests to `main`.
 
 ## Unit tests
 

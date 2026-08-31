@@ -1,9 +1,10 @@
 ---
 name: open-pull-request
 description: >-
-  Opens a GitHub pull request against main using .github/pull_request_template.md,
-  with the description in English. Use when the user asks to open, create, or
-  submit a PR, or when changes are done and they want a pull request.
+  Commits uncommitted work with Conventional Commits, then opens a GitHub pull
+  request against main using .github/pull_request_template.md, with the
+  description in English. Use when the user asks to open, create, or submit a
+  PR, or when changes are done and they want a pull request.
 ---
 
 # Open Pull Request
@@ -15,27 +16,70 @@ Create a GitHub PR with `gh`. Do not use TodoWrite or Task. Return the PR URL wh
 - You must use the `.github/pull_request_template.md`.
 - The description must be in English.
 - The PR should use branch `main` as base branch.
-- If there is uncommitted changes you should alert me to decide who will commit those changes.
+- If there are uncommitted changes, commit them before opening the PR. Do not stop to ask who should commit.
+- Group related files into the same commit. Make as many commits as needed.
+- Commit messages MUST follow Conventional Commits (see `.cursor/rules/conventional-commits.mdc`).
 - If the current branch is `main`, warn me and stop. The PR source must always be a different branch.
 
 ## Workflow
 
-### 1. Stop on uncommitted work
+### 1. Commit uncommitted work
 
-Run `git status` first.
+Run these in parallel first:
 
-If there are uncommitted or unstaged changes (including untracked files that belong in the PR):
+- `git status`
+- `git diff` and `git diff --staged`
+- `git log -8 --oneline` (match recent message style)
 
-1. **Stop.** Do not commit, stash, push, or create the PR.
-2. Alert the user that uncommitted changes exist and list them.
-3. Ask who should commit those changes: the user, or you.
-4. Wait for their decision. Resume this workflow only after the working tree is clean (or they explicitly say the leftover files must not be in the PR).
+**Clean tree:** skip to step 2.
 
-Do not invent a commit. Do not proceed "for now" with a dirty tree.
+**Dirty tree** (unstaged, staged, or untracked files that belong in the PR): commit before anything else. Do not stash, and do not open the PR with a dirty tree.
+
+#### Grouping
+
+Inspect the diffs and partition files into logical groups. Related files go in the same commit; unrelated concerns get separate commits. Prefer a split over one mixed commit.
+
+Group together, for example:
+
+- A feature or fix and its tests
+- `package.json` with `package-lock.json`
+- An OpenSpec change's proposal, design, specs, and tasks
+- A workflow file with the docs that describe it
+
+Do not mix unrelated concerns (e.g. CI config with an unrelated API change).
+
+Never commit secrets (`.env`, credentials, keys). Warn and leave those uncommitted.
+
+#### Each commit
+
+1. Stage only that group's files (`git add` paths; never `git add -i`).
+2. Commit with a HEREDOC. Do not pass `--no-verify` or `--no-gpg-sign`. Never update git config.
+
+```bash
+git commit -m "$(cat <<'EOF'
+type(optional-scope): summary
+
+EOF
+)"
+```
+
+Subject rules:
+
+- Format: `type(optional-scope): summary`
+- English, imperative mood (`add`, not `added` or `adds`)
+- Around 72 characters; no trailing period
+- Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+- Body optional, separated by a blank line; focus on why when it helps
+
+Examples: `feat: add task start endpoint`, `fix(users): return 404 when missing`, `ci: run e2e on pull requests`.
+
+If a hook rejects a commit, fix the issue and create a **new** commit. Do not amend unless the user asked and the amend safety conditions in the repo commit rules all hold.
+
+After the last commit, `git status` should be clean (except leftover secrets you warned about). Then continue.
 
 ### 2. Gather git state
 
-Once the tree is clean, run these in parallel:
+Run these in parallel:
 
 - `git status`
 - `git diff`
