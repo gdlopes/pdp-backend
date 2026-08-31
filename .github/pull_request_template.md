@@ -1,25 +1,25 @@
-## 📝 O que foi alterado?
+## 📝 What changed?
 
-<!-- Descreva resumidamente as mudanças deste PR. Ex.: nova feature, correção de bug, refatoração, config de infra, etc. -->
-
--
-
-## 🎓 Aprendizados
-
-<!-- Este projeto é também um laboratório de aprendizado — anote aqui o que você descobriu ou praticou neste PR. -->
+<!-- Briefly describe the changes in this PR. E.g.: new feature, bug fix, refactor, infra config, etc. -->
 
 -
 
-## 📸 Evidências de funcionamento
+## 🎓 Learnings
 
-<!-- Cole prints, GIFs ou links que comprovem que a alteração funciona como esperado. -->
+<!-- This project is also a learning lab — note here what you discovered or practiced in this PR. -->
 
-**Ex.: endpoint `/health` respondendo**
+-
 
-<!-- ![descrição](url) -->
+## 📸 Evidence it works
+
+<!-- Paste screenshots, GIFs, or links that show the change works as expected. -->
+
+**E.g.: `/health` endpoint responding**
+
+<!-- ![description](url) -->
 
 ## ✅ Checklist
 
-- [ ] Código testado localmente
-- [ ] Testes passando (`npm test` / CI)
-- [ ] Documentação atualizada (se aplicável)
+- [ ] Code tested locally
+- [ ] Tests passing (`npm test` / CI)
+- [ ] Documentation updated (if applicable)
