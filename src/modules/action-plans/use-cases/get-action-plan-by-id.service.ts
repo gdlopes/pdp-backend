@@ -22,7 +22,7 @@ export class GetActionPlanByIdService {
     });
 
     if (!actionPlan) {
-      throw new NotFoundException(`Action plan not found for user ${userId}.`);
+      throw new NotFoundException('Action plan not found.');
     }
 
     return actionPlan;

@@ -9,6 +9,7 @@ Each feature module owns a top-level route prefix matching the domain name:
 | Module | Controller prefix | Example |
 |--------|-------------------|---------|
 | users | `/users` | `POST /users` |
+| auth | `/auth` | `POST /auth/login` |
 | action-plans | `/action-plans` | `POST /action-plans` |
 | tasks | `/tasks` | `POST /tasks` |
 | healthcheck | `/healthcheck` | `GET /healthcheck` |
@@ -47,6 +48,7 @@ Use NestJS built-in HTTP exceptions with **English** messages:
 | `BadRequestException` | 400 | `User does not exists.` |
 | `NotFoundException` | 404 | Action plan not found |
 | `ConflictException` | 409 | `User already exists.` |
+| `UnauthorizedException` | 401 | `Invalid credentials.` |
 
 NestJS returns errors in the shape:
 
@@ -64,15 +66,20 @@ Return only fields the client needs. Never expose passwords or internal hashes.
 | Endpoint | Response |
 |----------|----------|
 | `POST /users` | `{ id, email }` |
+| `POST /auth/login` | `{ accessToken, tokenType: Bearer, expiresIn, user: { id, email } }` plus HttpOnly `refresh_token` cookie (`Path=/auth`) |
+| `POST /auth/refresh` | Same JSON shape as login; rotates the refresh cookie |
+| `POST /auth/logout` | Empty body (`204`) |
 | `POST /action-plans` | `{ id }` |
-| `GET /action-plans?userId=` | Array of full action plan objects |
-| `GET /action-plans/:id?userId=` | Single action plan object |
+| `GET /action-plans` | Array of the authenticated user's action plan objects |
+| `GET /action-plans/:id` | Single action plan object |
 | `POST /tasks` | `{ id }` |
 | `GET /tasks?actionPlanId=` | Array of task objects (`id`, `actionPlanId`, `description`, `status`, `createdAt`, `updatedAt`) |
 | `GET /tasks/:id` | Single task object |
 | `POST /tasks/:id/start` | `{ id, status }` (`IN_PROGRESS`) |
 | `POST /tasks/:id/complete` | `{ id, status }` (`DONE`) |
 | `DELETE /tasks/:id` | Empty body (`204`) |
+
+There is no `GET /users/me`, `GET /users/:id`, or `GET /users/email/:email`. The SPA gets `id` and `email` from login and refresh. Action-plan create/list/get do not accept a client `userId`; ownership comes from the access token.
 
 For list/detail endpoints that return entities, define Swagger response classes in `swagger/` to document the full shape.
 
@@ -127,13 +134,11 @@ Configured in `src/main.ts` via `DocumentBuilder` and `SwaggerModule.setup('api/
 
 ## Validation
 
-`class-validator` is available but not globally enforced yet. When adding validation:
+A global `ValidationPipe` is enabled in `configureApp` with `whitelist`, `forbidNonWhitelisted`, and `transform`. Request DTOs use `class-validator` decorators. Extra fields such as a spoofed `userId` on `POST /action-plans` are rejected with HTTP 400.
 
-1. Add decorators to DTOs (`@IsEmail()`, `@IsNotEmpty()`, etc.)
-2. Enable `ValidationPipe` globally in `main.ts`
-3. Document constraints in `@ApiProperty`
+Protected routes require `Authorization: Bearer <accessToken>`. Swagger documents this via `addBearerAuth()`.
 
-Until the global pipe is enabled, use-cases must enforce business rules explicitly (as `GetUserByIdService` does today).
+Login, refresh, and registration are rate-limited per IP (`429` when exceeded).
 
 ## New module checklist
 
@@ -184,9 +189,13 @@ In NestJS, static path segments must be declared **before** parameterized routes
 Current action-plans routes:
 
 ```
+POST /users
+POST /auth/login
+POST /auth/refresh
+POST /auth/logout
 POST /action-plans
-GET  /action-plans?userId=
-GET  /action-plans/:id?userId=
+GET  /action-plans
+GET  /action-plans/:id
 ```
 
 Current tasks routes:

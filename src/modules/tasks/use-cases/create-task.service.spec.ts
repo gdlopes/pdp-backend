@@ -52,12 +52,13 @@ describe('CreateTaskService', () => {
     it('should create a task with NOT_STARTED status', async () => {
       findActionPlanByIdServiceMock.execute.mockResolvedValueOnce({
         id: fakeCreateTaskDto.actionPlanId,
+        userId: 'owner-id',
       });
       jest.spyOn(tasksRepositoryMock, 'save').mockResolvedValueOnce({
         id: '41892581-9e42-4b8d-8309-6c31d8068811',
       });
 
-      const result = await service.execute(fakeCreateTaskDto);
+      const result = await service.execute('owner-id', fakeCreateTaskDto);
 
       expect(result).toEqual({ id: '41892581-9e42-4b8d-8309-6c31d8068811' });
       expect(findActionPlanByIdServiceMock.execute).toHaveBeenCalledWith(
@@ -78,12 +79,25 @@ describe('CreateTaskService', () => {
         new BadRequestException('Action plan does not exists.'),
       );
 
-      await expect(service.execute(fakeCreateTaskDto)).rejects.toThrow(
-        'Action plan does not exists.',
-      );
+      await expect(
+        service.execute('owner-id', fakeCreateTaskDto),
+      ).rejects.toThrow('Action plan does not exists.');
       expect(findActionPlanByIdServiceMock.execute).toHaveBeenCalledWith(
         fakeCreateTaskDto.actionPlanId,
       );
+      expect(saveSpy).not.toHaveBeenCalled();
+    });
+
+    it('should return error when action plan is owned by another user', async () => {
+      const saveSpy = jest.spyOn(tasksRepositoryMock, 'save');
+      findActionPlanByIdServiceMock.execute.mockResolvedValueOnce({
+        id: fakeCreateTaskDto.actionPlanId,
+        userId: 'other-user',
+      });
+
+      await expect(
+        service.execute('owner-id', fakeCreateTaskDto),
+      ).rejects.toThrow('Action plan does not exists.');
       expect(saveSpy).not.toHaveBeenCalled();
     });
   });

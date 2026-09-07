@@ -17,6 +17,7 @@ describe('TasksController', () => {
   let completeService: CompleteTaskService;
   let deleteService: DeleteTaskService;
 
+  const currentUser = { id: 'user-123' };
   const createdResponse = { id: 'task-1' };
   const statusResponse = { id: 'task-1', status: TaskStatusEnum.IN_PROGRESS };
   const fakeTask = {
@@ -83,53 +84,62 @@ describe('TasksController', () => {
   });
 
   it('POST tasks create', async () => {
-    const response = await controller.create(createTaskDto);
+    const response = await controller.create(currentUser, createTaskDto);
 
     expect(response).toEqual(createdResponse);
-    expect(createService.execute).toHaveBeenCalledWith(createTaskDto);
+    expect(createService.execute).toHaveBeenCalledWith(
+      currentUser.id,
+      createTaskDto,
+    );
   });
 
   it('GET tasks findByActionPlanId', async () => {
     const actionPlanId = 'plan-1';
 
-    const response = await controller.findByActionPlanId(actionPlanId);
+    const response = await controller.findByActionPlanId(
+      currentUser,
+      actionPlanId,
+    );
 
     expect(response).toEqual(fakeTasks);
-    expect(getByActionPlanIdService.execute).toHaveBeenCalledWith(actionPlanId);
+    expect(getByActionPlanIdService.execute).toHaveBeenCalledWith(
+      currentUser.id,
+      actionPlanId,
+    );
   });
 
   it('GET tasks findOne', async () => {
     const id = 'task-1';
 
-    const response = await controller.findOne(id);
+    const response = await controller.findOne(currentUser, id);
 
     expect(response).toEqual(fakeTask);
-    expect(getByIdService.execute).toHaveBeenCalledWith(id);
+    expect(getByIdService.execute).toHaveBeenCalledWith(currentUser.id, id);
   });
 
   it('POST tasks start', async () => {
     const id = 'task-1';
 
-    const response = await controller.start(id);
+    const response = await controller.start(currentUser, id);
 
     expect(response).toEqual(statusResponse);
-    expect(startService.execute).toHaveBeenCalledWith(id);
+    expect(startService.execute).toHaveBeenCalledWith(currentUser.id, id);
   });
 
   it('POST tasks complete', async () => {
     const id = 'task-1';
 
-    const response = await controller.complete(id);
+    const response = await controller.complete(currentUser, id);
 
     expect(response).toEqual({ id: 'task-1', status: TaskStatusEnum.DONE });
-    expect(completeService.execute).toHaveBeenCalledWith(id);
+    expect(completeService.execute).toHaveBeenCalledWith(currentUser.id, id);
   });
 
   it('DELETE tasks delete', async () => {
     const id = 'task-1';
 
-    await controller.delete(id);
+    await controller.delete(currentUser, id);
 
-    expect(deleteService.execute).toHaveBeenCalledWith(id);
+    expect(deleteService.execute).toHaveBeenCalledWith(currentUser.id, id);
   });
 });

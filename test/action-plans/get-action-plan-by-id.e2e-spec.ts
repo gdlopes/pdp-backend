@@ -1,8 +1,9 @@
 import * as request from 'supertest';
-import { NON_EXISTENT_ACTION_PLAN_ID, NON_EXISTENT_USER_ID } from './mock';
+import { bearer } from '../shared/login';
+import { NON_EXISTENT_ACTION_PLAN_ID } from './mock';
 import { setupActionPlansE2E, teardownActionPlansE2E } from './setup';
 
-describe('ActionPlans - GET /action-plans/:id?userId=', () => {
+describe('ActionPlans - GET /action-plans/:id', () => {
   jest.setTimeout(120000);
 
   const context = setupActionPlansE2E();
@@ -16,11 +17,12 @@ describe('ActionPlans - GET /action-plans/:id?userId=', () => {
   });
 
   it('should return an action plan by id', async () => {
-    const { app, userWithActionPlans, seededActionPlan } = await context;
+    const { app, ownerAuth, userWithActionPlans, seededActionPlan } =
+      await context;
 
-    const response = await request(app.getHttpServer()).get(
-      `/action-plans/${seededActionPlan.id}?userId=${userWithActionPlans.id}`,
-    );
+    const response = await request(app.getHttpServer())
+      .get(`/action-plans/${seededActionPlan.id}`)
+      .set(bearer(ownerAuth.accessToken));
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
@@ -31,39 +33,34 @@ describe('ActionPlans - GET /action-plans/:id?userId=', () => {
   });
 
   it('should return not found when action plan does not exist', async () => {
-    const { app, userWithActionPlans } = await context;
+    const { app, ownerAuth } = await context;
 
-    const response = await request(app.getHttpServer()).get(
-      `/action-plans/${NON_EXISTENT_ACTION_PLAN_ID}?userId=${userWithActionPlans.id}`,
-    );
+    const response = await request(app.getHttpServer())
+      .get(`/action-plans/${NON_EXISTENT_ACTION_PLAN_ID}`)
+      .set(bearer(ownerAuth.accessToken));
 
     expect(response.status).toBe(404);
-    expect(response.body.message).toEqual(
-      `Action plan not found for user ${userWithActionPlans.id}.`,
-    );
+    expect(response.body.message).toEqual('Action plan not found.');
   });
 
   it('should return not found when action plan belongs to another user', async () => {
-    const { app, userWithoutActionPlans, seededActionPlan } = await context;
+    const { app, otherAuth, seededActionPlan } = await context;
 
-    const response = await request(app.getHttpServer()).get(
-      `/action-plans/${seededActionPlan.id}?userId=${userWithoutActionPlans.id}`,
-    );
+    const response = await request(app.getHttpServer())
+      .get(`/action-plans/${seededActionPlan.id}`)
+      .set(bearer(otherAuth.accessToken));
 
     expect(response.status).toBe(404);
-    expect(response.body.message).toEqual(
-      `Action plan not found for user ${userWithoutActionPlans.id}.`,
-    );
+    expect(response.body.message).toEqual('Action plan not found.');
   });
 
-  it('should return error when user does not exist', async () => {
+  it('should return 401 without a token', async () => {
     const { app, seededActionPlan } = await context;
 
     const response = await request(app.getHttpServer()).get(
-      `/action-plans/${seededActionPlan.id}?userId=${NON_EXISTENT_USER_ID}`,
+      `/action-plans/${seededActionPlan.id}`,
     );
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toEqual('User does not exists.');
+    expect(response.status).toBe(401);
   });
 });

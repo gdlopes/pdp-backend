@@ -48,6 +48,8 @@ describe('CreateUserService', () => {
 
       expect(result.id).toBeDefined();
       expect(result.email).toEqual(fakeCreateUserData.email);
+      expect(result).not.toHaveProperty('passwordHash');
+      expect(result).not.toHaveProperty('password');
     });
 
     it('should return conflict error when email already exists', async () => {

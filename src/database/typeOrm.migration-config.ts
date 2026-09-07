@@ -4,6 +4,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import UsersEntity from './entities/users.entity';
 import ActionPlansEntity from './entities/action-plans.entity';
 import TasksEntity from './entities/tasks.entity';
+import RefreshTokensEntity from './entities/refresh-tokens.entity';
 
 config();
 
@@ -18,7 +19,7 @@ const dataSourceOptions: DataSourceOptions = {
   username: configService.get<string>('DATABASE_USERNAME'),
   password: configService.get<string>('DATABASE_PASSWORD'),
   database: configService.get<string>('DATABASE_NAME'),
-  entities: [UsersEntity, ActionPlansEntity, TasksEntity],
+  entities: [UsersEntity, ActionPlansEntity, TasksEntity, RefreshTokensEntity],
   migrations: [__dirname + `/migrations/*.${isCompiled ? 'js' : 'ts'}`],
   synchronize: false,
 };

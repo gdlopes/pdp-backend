@@ -55,7 +55,7 @@ describe('CompleteTaskService', () => {
         status: TaskStatusEnum.DONE,
       });
 
-      const result = await service.execute(fakeId);
+      const result = await service.execute('owner-id', fakeId);
 
       expect(result).toEqual({ id: fakeId, status: TaskStatusEnum.DONE });
       expect(tasksRepositoryMock.save).toHaveBeenCalledWith(
@@ -69,7 +69,7 @@ describe('CompleteTaskService', () => {
         status: TaskStatusEnum.DONE,
       });
 
-      const result = await service.execute(fakeId);
+      const result = await service.execute('owner-id', fakeId);
 
       expect(result).toEqual({ id: fakeId, status: TaskStatusEnum.DONE });
       expect(tasksRepositoryMock.save).not.toHaveBeenCalled();
@@ -81,7 +81,7 @@ describe('CompleteTaskService', () => {
         status: TaskStatusEnum.NOT_STARTED,
       });
 
-      await expect(service.execute(fakeId)).rejects.toThrow(
+      await expect(service.execute('owner-id', fakeId)).rejects.toThrow(
         'Task has not been started.',
       );
       expect(tasksRepositoryMock.save).not.toHaveBeenCalled();
@@ -92,8 +92,20 @@ describe('CompleteTaskService', () => {
         new NotFoundException('Task not found.'),
       );
 
-      await expect(service.execute(fakeId)).rejects.toThrow('Task not found.');
+      await expect(service.execute('owner-id', fakeId)).rejects.toThrow(
+        'Task not found.',
+      );
       expect(tasksRepositoryMock.save).not.toHaveBeenCalled();
+    });
+
+    it('should throw when the task is owned by another user', async () => {
+      getTaskByIdServiceMock.execute.mockRejectedValueOnce(
+        new NotFoundException('Task not found.'),
+      );
+
+      await expect(service.execute('owner-id', fakeId)).rejects.toThrow(
+        'Task not found.',
+      );
     });
   });
 });

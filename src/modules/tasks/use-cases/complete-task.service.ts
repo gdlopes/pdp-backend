@@ -14,8 +14,8 @@ export class CompleteTaskService {
     private getTaskByIdService: GetTaskByIdService,
   ) {}
 
-  public async execute(id: string) {
-    const task = await this.getTaskByIdService.execute(id);
+  public async execute(userId: string, id: string) {
+    const task = await this.getTaskByIdService.execute(userId, id);
 
     if (task.status === TaskStatusEnum.NOT_STARTED) {
       throw new BadRequestException('Task has not been started.');

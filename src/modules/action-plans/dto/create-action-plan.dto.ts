@@ -1,4 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import {
+  IsDate,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+} from 'class-validator';
 
 export enum CurrentLevelEnum {
   BEGINNER = 'BEGINNER',
@@ -22,19 +30,13 @@ export enum ReviewCommitmentEnum {
 
 export class CreateActionPlanDto {
   @ApiProperty({
-    description: 'Identifier to the owner of this action plan.',
-    example: '6481dfe7-c581-4bf9-8df3-4d0475fe6a17',
-    type: String,
-    required: true,
-  })
-  userId: string;
-
-  @ApiProperty({
     description: 'Action plan title.',
     example: 'Kubernetes',
     type: String,
     required: true,
   })
+  @IsString()
+  @IsNotEmpty()
   title: string;
 
   @ApiProperty({
@@ -43,6 +45,8 @@ export class CreateActionPlanDto {
     type: String,
     required: true,
   })
+  @IsString()
+  @IsNotEmpty()
   goal: string;
 
   @ApiProperty({
@@ -51,6 +55,8 @@ export class CreateActionPlanDto {
     type: String,
     required: true,
   })
+  @IsString()
+  @IsNotEmpty()
   alignmentWithLifeCareer: string;
 
   @ApiProperty({
@@ -59,6 +65,8 @@ export class CreateActionPlanDto {
     type: String,
     required: true,
   })
+  @IsString()
+  @IsNotEmpty()
   motivation: string;
 
   @ApiProperty({
@@ -68,6 +76,7 @@ export class CreateActionPlanDto {
     example: CurrentLevelEnum.BEGINNER,
     required: true,
   })
+  @IsEnum(CurrentLevelEnum)
   currentLevel: CurrentLevelEnum;
 
   @ApiProperty({
@@ -77,6 +86,7 @@ export class CreateActionPlanDto {
     example: ExpectedLevelEnum.INTERMEDIARY,
     required: true,
   })
+  @IsEnum(ExpectedLevelEnum)
   expectedLevel: ExpectedLevelEnum;
 
   @ApiProperty({
@@ -85,6 +95,8 @@ export class CreateActionPlanDto {
     type: String,
     required: true,
   })
+  @IsString()
+  @IsNotEmpty()
   specificGoal: string;
 
   @ApiProperty({
@@ -93,6 +105,8 @@ export class CreateActionPlanDto {
     type: String,
     required: true,
   })
+  @IsString()
+  @IsNotEmpty()
   progressTrackingMethod: string;
 
   @ApiProperty({
@@ -101,6 +115,8 @@ export class CreateActionPlanDto {
     type: String,
     required: true,
   })
+  @IsString()
+  @IsNotEmpty()
   resources: string;
 
   @ApiProperty({
@@ -109,6 +125,8 @@ export class CreateActionPlanDto {
     type: String,
     required: true,
   })
+  @IsString()
+  @IsNotEmpty()
   developmentImpact: string;
 
   @ApiProperty({
@@ -118,6 +136,8 @@ export class CreateActionPlanDto {
     format: 'date',
     required: true,
   })
+  @Type(() => Date)
+  @IsDate()
   estimatedCompletionDate: Date;
 
   @ApiProperty({
@@ -126,6 +146,8 @@ export class CreateActionPlanDto {
     type: String,
     required: true,
   })
+  @IsString()
+  @IsNotEmpty()
   learningMethod: string;
 
   @ApiProperty({
@@ -134,6 +156,8 @@ export class CreateActionPlanDto {
     type: Number,
     required: true,
   })
+  @Type(() => Number)
+  @IsNumber()
   timeCommitment: number;
 
   @ApiProperty({
@@ -142,6 +166,8 @@ export class CreateActionPlanDto {
     type: String,
     required: true,
   })
+  @IsString()
+  @IsNotEmpty()
   knowledgeApplication: string;
 
   @ApiProperty({
@@ -151,6 +177,8 @@ export class CreateActionPlanDto {
     type: String,
     required: true,
   })
+  @IsString()
+  @IsNotEmpty()
   rewards: string;
 
   @ApiProperty({
@@ -159,5 +187,6 @@ export class CreateActionPlanDto {
     example: ReviewCommitmentEnum.WEEKLY,
     required: true,
   })
+  @IsEnum(ReviewCommitmentEnum)
   reviewCommitment: ReviewCommitmentEnum;
 }

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import TasksEntity, {
@@ -16,8 +16,14 @@ export class CreateTaskService {
     private findActionPlanByIdService: FindActionPlanByIdService,
   ) {}
 
-  public async execute(createTaskDto: CreateTaskDto) {
-    await this.findActionPlanByIdService.execute(createTaskDto.actionPlanId);
+  public async execute(userId: string, createTaskDto: CreateTaskDto) {
+    const actionPlan = await this.findActionPlanByIdService.execute(
+      createTaskDto.actionPlanId,
+    );
+
+    if (actionPlan.userId !== userId) {
+      throw new BadRequestException('Action plan does not exists.');
+    }
 
     const databaseTask = new TasksEntity();
     databaseTask.actionPlanId = createTaskDto.actionPlanId;

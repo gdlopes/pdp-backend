@@ -16,6 +16,7 @@ describe('ActionPlansController', () => {
   let getByIdService: GetActionPlanByIdService;
 
   const createdResponse = { id: 'plan-1' };
+  const currentUser = { id: 'user-123' };
 
   const fakeActionPlans = [
     { id: 'plan-1', userId: 'user-123', title: 'Plano 1' },
@@ -25,7 +26,6 @@ describe('ActionPlansController', () => {
   const fakeActionPlan = { id: 'plan-1', userId: 'user-123', title: 'Plano 1' };
 
   const createActionPlanDto = {
-    userId: 'user-123',
     title: 'Plano de Ação',
     goal: 'Meu objetivo',
     alignmentWithLifeCareer: 'Alinhamento',
@@ -86,28 +86,28 @@ describe('ActionPlansController', () => {
   });
 
   it('POST action-plans create', async () => {
-    const response = await controller.create(createActionPlanDto);
+    const response = await controller.create(currentUser, createActionPlanDto);
 
     expect(response).toEqual(createdResponse);
-    expect(createService.execute).toHaveBeenCalledWith(createActionPlanDto);
+    expect(createService.execute).toHaveBeenCalledWith(
+      currentUser.id,
+      createActionPlanDto,
+    );
   });
 
   it('GET action-plans findByUserId', async () => {
-    const userId = 'user-123';
-
-    const response = await controller.findByUserId(userId);
+    const response = await controller.findByUserId(currentUser);
 
     expect(response).toEqual(fakeActionPlans);
-    expect(getByUserIdService.execute).toHaveBeenCalledWith(userId);
+    expect(getByUserIdService.execute).toHaveBeenCalledWith(currentUser.id);
   });
 
   it('GET action-plans findOne', async () => {
-    const userId = 'user-123';
     const id = 'plan-1';
 
-    const response = await controller.findOne(id, userId);
+    const response = await controller.findOne(currentUser, id);
 
     expect(response).toEqual(fakeActionPlan);
-    expect(getByIdService.execute).toHaveBeenCalledWith(userId, id);
+    expect(getByIdService.execute).toHaveBeenCalledWith(currentUser.id, id);
   });
 });

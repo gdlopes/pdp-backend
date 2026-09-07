@@ -50,6 +50,7 @@ All entities live in `src/database/entities/`:
 | `UsersEntity` | `users` | `users.entity.ts` |
 | `ActionPlansEntity` | `action_plans` | `action-plans.entity.ts` |
 | `TasksEntity` | `tasks` | `tasks.entity.ts` |
+| `RefreshTokensEntity` | `refresh_tokens` | `refresh-tokens.entity.ts` |
 
 Feature modules import entities via:
 
@@ -73,6 +74,7 @@ Current relationships:
 
 - `ActionPlansEntity` → `UsersEntity` (`user_id`)
 - `TasksEntity` → `ActionPlansEntity` (`action_plan_id`, CASCADE delete)
+- `RefreshTokensEntity` → `UsersEntity` (`user_id`, CASCADE delete)
 
 ## Migrations
 
@@ -106,6 +108,7 @@ npm run migration:revert
 | `1742156397081` | `create-users-table.ts` | `users` |
 | `1742902163805` | `create-action-plans-table.ts` | `action_plans` + FK to users |
 | `1745024081620` | `create-tasks-table.ts` | `tasks` + FK to action_plans |
+| `1788396601973` | `create-refresh-tokens-table.ts` | `refresh_tokens` + FK to users |
 
 ### Migration rules
 

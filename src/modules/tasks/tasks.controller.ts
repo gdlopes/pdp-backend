@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
@@ -18,7 +19,10 @@ import {
   ApiOperation,
   ApiQuery,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../auth/types/authenticated-user';
 import {
   CreateTaskDto,
   CreateTaskResponseDto,
@@ -36,6 +40,8 @@ import {
 
 @Controller('tasks')
 @ApiTags('tasks')
+@ApiBearerAuth()
+@ApiUnauthorizedResponse({ description: 'Missing or invalid access token.' })
 export class TasksController {
   constructor(
     private readonly createTaskService: CreateTaskService,
@@ -53,8 +59,11 @@ export class TasksController {
     type: CreateTaskResponseDto,
   })
   @ApiBadRequestResponse({ description: 'Action plan does not exists.' })
-  create(@Body() createTaskDto: CreateTaskDto) {
-    return this.createTaskService.execute(createTaskDto);
+  create(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() createTaskDto: CreateTaskDto,
+  ) {
+    return this.createTaskService.execute(user.id, createTaskDto);
   }
 
   @Get()
@@ -66,8 +75,11 @@ export class TasksController {
     isArray: true,
   })
   @ApiBadRequestResponse({ description: 'Action plan does not exists.' })
-  findByActionPlanId(@Query('actionPlanId') actionPlanId: string) {
-    return this.getTasksByActionPlanIdService.execute(actionPlanId);
+  findByActionPlanId(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('actionPlanId') actionPlanId: string,
+  ) {
+    return this.getTasksByActionPlanIdService.execute(user.id, actionPlanId);
   }
 
   @Get(':id')
@@ -77,8 +89,8 @@ export class TasksController {
     type: GetTaskByIdResponse,
   })
   @ApiNotFoundResponse({ description: 'Task not found.' })
-  findOne(@Param('id') id: string) {
-    return this.getTaskByIdService.execute(id);
+  findOne(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.getTaskByIdService.execute(user.id, id);
   }
 
   @Post(':id/start')
@@ -90,8 +102,8 @@ export class TasksController {
   })
   @ApiBadRequestResponse({ description: 'Task is already done.' })
   @ApiNotFoundResponse({ description: 'Task not found.' })
-  start(@Param('id') id: string) {
-    return this.startTaskService.execute(id);
+  start(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.startTaskService.execute(user.id, id);
   }
 
   @Post(':id/complete')
@@ -103,8 +115,8 @@ export class TasksController {
   })
   @ApiBadRequestResponse({ description: 'Task has not been started.' })
   @ApiNotFoundResponse({ description: 'Task not found.' })
-  complete(@Param('id') id: string) {
-    return this.completeTaskService.execute(id);
+  complete(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.completeTaskService.execute(user.id, id);
   }
 
   @Delete(':id')
@@ -114,7 +126,7 @@ export class TasksController {
     description: 'The task has been successfully deleted.',
   })
   @ApiNotFoundResponse({ description: 'Task not found.' })
-  delete(@Param('id') id: string) {
-    return this.deleteTaskService.execute(id);
+  delete(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.deleteTaskService.execute(user.id, id);
   }
 }

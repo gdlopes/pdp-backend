@@ -14,8 +14,8 @@ export class StartTaskService {
     private getTaskByIdService: GetTaskByIdService,
   ) {}
 
-  public async execute(id: string) {
-    const task = await this.getTaskByIdService.execute(id);
+  public async execute(userId: string, id: string) {
+    const task = await this.getTaskByIdService.execute(userId, id);
 
     if (task.status === TaskStatusEnum.DONE) {
       throw new BadRequestException('Task is already done.');

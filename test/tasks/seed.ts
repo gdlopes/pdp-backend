@@ -12,6 +12,7 @@ export const seedTasksModule = async (dataSource: DataSource) => {
 
   return {
     userWithActionPlans,
+    userWithoutActionPlans,
     actionPlanForTasks: seededActionPlan,
     actionPlanWithoutTasks,
   };

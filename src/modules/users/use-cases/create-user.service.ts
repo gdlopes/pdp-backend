@@ -1,9 +1,11 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { hashSync } from 'bcrypt';
+import { hash } from 'bcrypt';
 import { Repository } from 'typeorm';
 import UsersEntity from '../../../database/entities/users.entity';
 import { CreateUserDto } from '../dto/create-user.dto';
+
+const PASSWORD_HASH_COST = 12;
 
 @Injectable()
 export class CreateUserService {
@@ -15,7 +17,10 @@ export class CreateUserService {
   async execute(createUserDto: CreateUserDto) {
     const databaseUser = new UsersEntity();
     databaseUser.email = createUserDto.email;
-    databaseUser.passwordHash = hashSync(createUserDto.password, 10);
+    databaseUser.passwordHash = await hash(
+      createUserDto.password,
+      PASSWORD_HASH_COST,
+    );
 
     const userAlreadyExists = await this.validateUserExists(
       createUserDto.email,

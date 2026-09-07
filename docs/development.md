@@ -23,6 +23,14 @@ cp .env.example .env
 | `DATABASE_USERNAME` | Database user | `postgres` |
 | `DATABASE_PASSWORD` | Database password | `root` |
 | `DATABASE_NAME` | Database name | `pdp-api` |
+| `JWT_ACCESS_SECRET` | HMAC secret for access JWTs; **must be at least 32 characters**. The app refuses to boot if it is missing or shorter | (required) |
+| `JWT_ISSUER` | JWT `iss` claim | `pdp-api` |
+| `JWT_AUDIENCE` | JWT `aud` claim | `pdp-client` |
+| `JWT_ACCESS_EXPIRES_IN` | Access-token lifetime in seconds (capped at 900) | `900` |
+| `REFRESH_TOKEN_TTL_DAYS` | Refresh-token cookie lifetime | `7` |
+| `COOKIE_SECURE` | Set `true` in HTTPS deployments | `false` locally |
+| `COOKIE_SAMESITE` | `lax` when the SPA shares a site with the API; `none` (requires HTTPS/`COOKIE_SECURE`) when the SPA is cross-site | `lax` |
+| `CORS_ORIGINS` | Comma-separated browser origins allowed to send the refresh cookie | `http://localhost:3000` |
 
 When running the API **inside** Docker Compose, use `DATABASE_HOST=postgres` (the service name). When running the API **on the host** against the compose database, use `DATABASE_HOST=localhost`.
 
