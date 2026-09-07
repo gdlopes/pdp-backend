@@ -10,10 +10,8 @@ export { NON_EXISTENT_USER_ID };
 export const NON_EXISTENT_ACTION_PLAN_ID = 999999;
 
 export const buildCreateActionPlanDto = (
-  userId: string,
   overrides: Partial<CreateActionPlanDto> = {},
 ): CreateActionPlanDto => ({
-  userId,
   title: 'Kubernetes',
   goal: 'To improve my knowledge.',
   alignmentWithLifeCareer:

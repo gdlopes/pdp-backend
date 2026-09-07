@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { ActionPlansModule } from './modules/action-plans/action-plans.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { HealthcheckModule } from './modules/healthcheck/healthcheck.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { UsersModule } from './modules/users/users.module';
@@ -12,6 +13,7 @@ import { UsersModule } from './modules/users/users.module';
     HealthcheckModule,
     DatabaseModule,
     UsersModule,
+    AuthModule,
     ActionPlansModule,
     TasksModule,
   ],

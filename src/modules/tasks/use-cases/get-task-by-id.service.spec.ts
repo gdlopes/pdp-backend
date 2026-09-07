@@ -6,11 +6,13 @@ import TasksEntity, {
 import { GetTaskByIdService } from './get-task-by-id.service';
 
 const tasksRepositoryMock = {
-  findOneBy: jest.fn(),
+  findOne: jest.fn(),
 };
 
 describe('GetTaskByIdService', () => {
   let service: GetTaskByIdService;
+  const ownerId = 'owner-id';
+  const fakeId = 'fake-task-id';
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -33,31 +35,49 @@ describe('GetTaskByIdService', () => {
   });
 
   describe('#execute', () => {
-    const fakeId = 'fake-task-id';
-
-    it('should return the task when found', async () => {
+    it('should return the task when found and owned', async () => {
       const fakeTask = {
         id: fakeId,
         actionPlanId: 'fake-action-plan-id',
         status: TaskStatusEnum.NOT_STARTED,
+        actionPlan: { userId: ownerId },
       } as TasksEntity;
 
       jest
-        .spyOn(tasksRepositoryMock, 'findOneBy')
+        .spyOn(tasksRepositoryMock, 'findOne')
         .mockResolvedValueOnce(fakeTask);
 
-      const result = await service.execute(fakeId);
+      const result = await service.execute(ownerId, fakeId);
 
-      expect(result).toEqual(fakeTask);
-      expect(tasksRepositoryMock.findOneBy).toHaveBeenCalledWith({
+      expect(result).toMatchObject({
         id: fakeId,
+        actionPlanId: 'fake-action-plan-id',
+        status: TaskStatusEnum.NOT_STARTED,
+      });
+      expect((result as { actionPlan?: unknown }).actionPlan).toBeUndefined();
+      expect(tasksRepositoryMock.findOne).toHaveBeenCalledWith({
+        where: { id: fakeId },
+        relations: ['actionPlan'],
       });
     });
 
     it('should throw NotFoundException when task does not exist', async () => {
-      jest.spyOn(tasksRepositoryMock, 'findOneBy').mockResolvedValueOnce(null);
+      jest.spyOn(tasksRepositoryMock, 'findOne').mockResolvedValueOnce(null);
 
-      await expect(service.execute(fakeId)).rejects.toThrow('Task not found.');
+      await expect(service.execute(ownerId, fakeId)).rejects.toThrow(
+        'Task not found.',
+      );
+    });
+
+    it('should throw NotFoundException when the parent plan is owned by another user', async () => {
+      jest.spyOn(tasksRepositoryMock, 'findOne').mockResolvedValueOnce({
+        id: fakeId,
+        actionPlan: { userId: 'other-user' },
+      });
+
+      await expect(service.execute(ownerId, fakeId)).rejects.toThrow(
+        'Task not found.',
+      );
     });
   });
 });

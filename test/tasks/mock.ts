@@ -7,7 +7,7 @@ export const buildCreateTaskDto = (
   actionPlanId: string,
   overrides: Partial<CreateTaskDto> = {},
 ): CreateTaskDto => ({
-  actionPlanId,
+  actionPlanId: String(actionPlanId),
   description: 'Complete the Kubernetes introductory course.',
   ...overrides,
 });

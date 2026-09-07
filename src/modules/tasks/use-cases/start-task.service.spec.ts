@@ -55,7 +55,7 @@ describe('StartTaskService', () => {
         status: TaskStatusEnum.IN_PROGRESS,
       });
 
-      const result = await service.execute(fakeId);
+      const result = await service.execute('owner-id', fakeId);
 
       expect(result).toEqual({
         id: fakeId,
@@ -72,7 +72,7 @@ describe('StartTaskService', () => {
         status: TaskStatusEnum.IN_PROGRESS,
       });
 
-      const result = await service.execute(fakeId);
+      const result = await service.execute('owner-id', fakeId);
 
       expect(result).toEqual({
         id: fakeId,
@@ -87,7 +87,7 @@ describe('StartTaskService', () => {
         status: TaskStatusEnum.DONE,
       });
 
-      await expect(service.execute(fakeId)).rejects.toThrow(
+      await expect(service.execute('owner-id', fakeId)).rejects.toThrow(
         'Task is already done.',
       );
       expect(tasksRepositoryMock.save).not.toHaveBeenCalled();
@@ -98,8 +98,20 @@ describe('StartTaskService', () => {
         new NotFoundException('Task not found.'),
       );
 
-      await expect(service.execute(fakeId)).rejects.toThrow('Task not found.');
+      await expect(service.execute('owner-id', fakeId)).rejects.toThrow(
+        'Task not found.',
+      );
       expect(tasksRepositoryMock.save).not.toHaveBeenCalled();
+    });
+
+    it('should throw when the task is owned by another user', async () => {
+      getTaskByIdServiceMock.execute.mockRejectedValueOnce(
+        new NotFoundException('Task not found.'),
+      );
+
+      await expect(service.execute('owner-id', fakeId)).rejects.toThrow(
+        'Task not found.',
+      );
     });
   });
 });

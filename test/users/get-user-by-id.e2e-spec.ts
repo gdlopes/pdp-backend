@@ -1,5 +1,5 @@
 import * as request from 'supertest';
-import { NON_EXISTENT_USER_ID } from './mock';
+import { bearer, login, SEEDED_USER_PASSWORD } from '../shared/login';
 import { setupUsersE2E, teardownUsersE2E } from './setup';
 
 describe('Users - GET /users/:id', () => {
@@ -15,29 +15,36 @@ describe('Users - GET /users/:id', () => {
     await teardownUsersE2E(await context);
   });
 
-  it('should return a user by id', async () => {
+  it('does not return a user profile by id without a token', async () => {
     const { app, existentUser } = await context;
 
     const response = await request(app.getHttpServer()).get(
       `/users/${existentUser.id}`,
     );
 
-    expect(response.status).toBe(200);
-    expect(response.body).toMatchObject({
+    expect(response.status).not.toBe(200);
+    expect(response.body).not.toMatchObject({
       id: existentUser.id,
       email: existentUser.email,
     });
-    expect(response.body.passwordHash).toBeUndefined();
   });
 
-  it('should return error when user does not exist', async () => {
-    const { app } = await context;
-
-    const response = await request(app.getHttpServer()).get(
-      `/users/${NON_EXISTENT_USER_ID}`,
+  it('does not return a user profile by id with a token', async () => {
+    const { app, existentUser } = await context;
+    const { accessToken } = await login(
+      app,
+      existentUser.email,
+      SEEDED_USER_PASSWORD,
     );
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toEqual('User does not exists.');
+    const response = await request(app.getHttpServer())
+      .get(`/users/${existentUser.id}`)
+      .set(bearer(accessToken));
+
+    expect(response.status).not.toBe(200);
+    expect(response.body).not.toMatchObject({
+      id: existentUser.id,
+      email: existentUser.email,
+    });
   });
 });

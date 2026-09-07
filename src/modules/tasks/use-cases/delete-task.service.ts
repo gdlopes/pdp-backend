@@ -12,8 +12,8 @@ export class DeleteTaskService {
     private getTaskByIdService: GetTaskByIdService,
   ) {}
 
-  public async execute(id: string): Promise<void> {
-    const task = await this.getTaskByIdService.execute(id);
+  public async execute(userId: string, id: string): Promise<void> {
+    const task = await this.getTaskByIdService.execute(userId, id);
     await this.tasksRepository.remove(task);
   }
 }

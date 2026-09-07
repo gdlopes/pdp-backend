@@ -1,12 +1,15 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiQuery,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../auth/types/authenticated-user';
 import { CreateActionPlanDto } from './dto/create-action-plan.dto';
 import {
   CreateActionPlanResponse,
@@ -21,6 +24,8 @@ import {
 
 @Controller('action-plans')
 @ApiTags('action-plans')
+@ApiBearerAuth()
+@ApiUnauthorizedResponse({ description: 'Missing or invalid access token.' })
 export class ActionPlansController {
   constructor(
     private readonly createActionPlansService: CreateActionPlansService,
@@ -34,25 +39,28 @@ export class ActionPlansController {
     description: 'The action plan has been successfully created.',
     type: CreateActionPlanResponse,
   })
-  create(@Body() createActionPlanDto: CreateActionPlanDto) {
-    return this.createActionPlansService.execute(createActionPlanDto);
+  create(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() createActionPlanDto: CreateActionPlanDto,
+  ) {
+    return this.createActionPlansService.execute(user.id, createActionPlanDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Gets all action plans by user ID.' })
-  @ApiQuery({ name: 'userId', required: true, type: String })
+  @ApiOperation({
+    summary: 'Gets all action plans for the authenticated user.',
+  })
   @ApiOkResponse({
     description: 'The action plans have been successfully retrieved.',
     type: GetActionPlansByUserIdResponse,
     isArray: true,
   })
-  findByUserId(@Query('userId') userId: string) {
-    return this.getActionPlansByUserIdService.execute(userId);
+  findByUserId(@CurrentUser() user: AuthenticatedUser) {
+    return this.getActionPlansByUserIdService.execute(user.id);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Gets an action plan by ID.' })
-  @ApiQuery({ name: 'userId', required: true, type: String })
   @ApiOkResponse({
     description: 'The action plan has been successfully retrieved.',
     type: GetActionPlanByIdResponse,
@@ -60,7 +68,7 @@ export class ActionPlansController {
   @ApiNotFoundResponse({
     description: 'The action plan was not found.',
   })
-  findOne(@Param('id') id: string, @Query('userId') userId: string) {
-    return this.getActionPlanByIdService.execute(userId, id);
+  findOne(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.getActionPlanByIdService.execute(user.id, id);
   }
 }

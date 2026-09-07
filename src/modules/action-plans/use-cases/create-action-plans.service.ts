@@ -14,11 +14,14 @@ export class CreateActionPlansService {
     private getUserByIdService: GetUserByIdService,
   ) {}
 
-  public async execute(createActionPlanDto: CreateActionPlanDto) {
-    await this.getUserByIdService.execute(createActionPlanDto.userId);
+  public async execute(
+    userId: string,
+    createActionPlanDto: CreateActionPlanDto,
+  ) {
+    await this.getUserByIdService.execute(userId);
 
     const databaseActionPlan = new ActionPlansEntity();
-    databaseActionPlan.userId = createActionPlanDto.userId;
+    databaseActionPlan.userId = userId;
     databaseActionPlan.title = createActionPlanDto.title;
     databaseActionPlan.goal = createActionPlanDto.goal;
     databaseActionPlan.alignmentWithLifeCareer =

@@ -12,6 +12,6 @@ import { UsersController } from './users.controller';
   controllers: [UsersController],
   imports: [TypeOrmModule.forFeature([UsersEntity])],
   providers: [CreateUserService, GetUserByEmailService, GetUserByIdService],
-  exports: [CreateUserService, GetUserByIdService],
+  exports: [CreateUserService, GetUserByIdService, GetUserByEmailService],
 })
 export class UsersModule {}

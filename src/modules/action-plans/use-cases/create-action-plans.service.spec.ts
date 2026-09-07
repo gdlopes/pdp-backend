@@ -48,7 +48,6 @@ describe('CreateActionPlansService', () => {
 
   describe('#execute', () => {
     const fakeActionPlanData: CreateActionPlanDto = {
-      userId: 'fake-user-id',
       title: 'fake-title',
       goal: 'fake-goal',
       alignmentWithLifeCareer: 'fake-alignment-with-life-carrier',
@@ -75,11 +74,14 @@ describe('CreateActionPlansService', () => {
         .spyOn(actionPlansRepositoryMock, 'save')
         .mockResolvedValueOnce({ id: '41892581-9e42-4b8d-8309-6c31d8068811' });
 
-      const result = await service.execute(fakeActionPlanData);
+      const result = await service.execute('fake-user-id', fakeActionPlanData);
 
       expect(result.id).toBeDefined();
       expect(getUserByIdServiceMock.execute).toHaveBeenCalledWith(
-        fakeActionPlanData.userId,
+        'fake-user-id',
+      );
+      expect(actionPlansRepositoryMock.save).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: 'fake-user-id' }),
       );
     });
 
@@ -89,11 +91,11 @@ describe('CreateActionPlansService', () => {
         new BadRequestException('User does not exists.'),
       );
 
-      const promise = service.execute(fakeActionPlanData);
+      const promise = service.execute('fake-user-id', fakeActionPlanData);
 
       await expect(promise).rejects.toThrow('User does not exists.');
       expect(getUserByIdServiceMock.execute).toHaveBeenCalledWith(
-        fakeActionPlanData.userId,
+        'fake-user-id',
       );
       expect(saveSpy).not.toHaveBeenCalled();
     });

@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateTaskDto {
   @ApiProperty({
@@ -7,6 +9,9 @@ export class CreateTaskDto {
     type: String,
     required: true,
   })
+  @Transform(({ value }) => (typeof value === 'number' ? String(value) : value))
+  @IsString()
+  @IsNotEmpty()
   actionPlanId: string;
 
   @ApiProperty({
@@ -15,5 +20,7 @@ export class CreateTaskDto {
     type: String,
     required: true,
   })
+  @IsString()
+  @IsNotEmpty()
   description: string;
 }

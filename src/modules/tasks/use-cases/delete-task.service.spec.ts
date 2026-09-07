@@ -54,9 +54,12 @@ describe('DeleteTaskService', () => {
       getTaskByIdServiceMock.execute.mockResolvedValueOnce(fakeTask);
       jest.spyOn(tasksRepositoryMock, 'remove').mockResolvedValueOnce(fakeTask);
 
-      await service.execute(fakeId);
+      await service.execute('owner-id', fakeId);
 
-      expect(getTaskByIdServiceMock.execute).toHaveBeenCalledWith(fakeId);
+      expect(getTaskByIdServiceMock.execute).toHaveBeenCalledWith(
+        'owner-id',
+        fakeId,
+      );
       expect(tasksRepositoryMock.remove).toHaveBeenCalledWith(fakeTask);
     });
 
@@ -65,8 +68,20 @@ describe('DeleteTaskService', () => {
         new NotFoundException('Task not found.'),
       );
 
-      await expect(service.execute(fakeId)).rejects.toThrow('Task not found.');
+      await expect(service.execute('owner-id', fakeId)).rejects.toThrow(
+        'Task not found.',
+      );
       expect(tasksRepositoryMock.remove).not.toHaveBeenCalled();
+    });
+
+    it('should throw when the task is owned by another user', async () => {
+      getTaskByIdServiceMock.execute.mockRejectedValueOnce(
+        new NotFoundException('Task not found.'),
+      );
+
+      await expect(service.execute('owner-id', fakeId)).rejects.toThrow(
+        'Task not found.',
+      );
     });
   });
 });

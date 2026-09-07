@@ -51,12 +51,15 @@ describe('GetUserByEmailService', () => {
       });
     });
 
-    it('should throw BadRequestException when user does not exist', async () => {
+    it('should return null when user does not exist', async () => {
       jest.spyOn(usersRepositoryMock, 'findOne').mockResolvedValueOnce(null);
 
-      const promise = service.execute(fakeEmail);
+      const result = await service.execute(fakeEmail);
 
-      await expect(promise).rejects.toThrow('User does not exists.');
+      expect(result).toBeNull();
+      expect(usersRepositoryMock.findOne).toHaveBeenCalledWith({
+        where: { email: fakeEmail },
+      });
     });
   });
 });

@@ -1,8 +1,8 @@
 import * as request from 'supertest';
-import { NON_EXISTENT_USER_ID } from './mock';
+import { bearer } from '../shared/login';
 import { setupActionPlansE2E, teardownActionPlansE2E } from './setup';
 
-describe('ActionPlans - GET /action-plans?userId=', () => {
+describe('ActionPlans - GET /action-plans', () => {
   jest.setTimeout(120000);
 
   const context = setupActionPlansE2E();
@@ -15,12 +15,13 @@ describe('ActionPlans - GET /action-plans?userId=', () => {
     await teardownActionPlansE2E(await context);
   });
 
-  it('should return action plans for a given user', async () => {
-    const { app, userWithActionPlans, seededActionPlan } = await context;
+  it('should return action plans for the authenticated user', async () => {
+    const { app, ownerAuth, seededActionPlan, userWithActionPlans } =
+      await context;
 
-    const response = await request(app.getHttpServer()).get(
-      `/action-plans?userId=${userWithActionPlans.id}`,
-    );
+    const response = await request(app.getHttpServer())
+      .get('/action-plans')
+      .set(bearer(ownerAuth.accessToken));
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
@@ -31,25 +32,33 @@ describe('ActionPlans - GET /action-plans?userId=', () => {
     });
   });
 
-  it('should return an empty array when user has no action plans', async () => {
-    const { app, userWithoutActionPlans } = await context;
+  it('should return an empty array when the user has no action plans', async () => {
+    const { app, otherAuth } = await context;
 
-    const response = await request(app.getHttpServer()).get(
-      `/action-plans?userId=${userWithoutActionPlans.id}`,
-    );
+    const response = await request(app.getHttpServer())
+      .get('/action-plans')
+      .set(bearer(otherAuth.accessToken));
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([]);
   });
 
-  it('should return error when user does not exist', async () => {
+  it('should not return another user plans even if userId is queried', async () => {
+    const { app, otherAuth, userWithActionPlans } = await context;
+
+    const response = await request(app.getHttpServer())
+      .get(`/action-plans?userId=${userWithActionPlans.id}`)
+      .set(bearer(otherAuth.accessToken));
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
+  });
+
+  it('should return 401 without a token', async () => {
     const { app } = await context;
 
-    const response = await request(app.getHttpServer()).get(
-      `/action-plans?userId=${NON_EXISTENT_USER_ID}`,
-    );
+    const response = await request(app.getHttpServer()).get('/action-plans');
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toEqual('User does not exists.');
+    expect(response.status).toBe(401);
   });
 });

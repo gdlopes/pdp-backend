@@ -1,5 +1,6 @@
 import * as request from 'supertest';
 import { TaskStatusEnum } from '../../src/database/entities/tasks.entity';
+import { bearer } from '../shared/login';
 import {
   buildCreateTaskDto,
   NON_EXISTENT_ACTION_PLAN_ID,
@@ -21,26 +22,27 @@ describe('Tasks - GET /tasks', () => {
   });
 
   it('should return an empty array when the action plan has no tasks', async () => {
-    const { app, actionPlanWithoutTasks } = await context;
+    const { app, actionPlanWithoutTasks, otherAuth } = await context;
 
-    const response = await request(app.getHttpServer()).get(
-      `/tasks?actionPlanId=${actionPlanWithoutTasks.id}`,
-    );
+    const response = await request(app.getHttpServer())
+      .get(`/tasks?actionPlanId=${actionPlanWithoutTasks.id}`)
+      .set(bearer(otherAuth.accessToken));
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([]);
   });
 
   it('should return tasks for an action plan', async () => {
-    const { app, actionPlanForTasks } = await context;
+    const { app, actionPlanForTasks, ownerAuth } = await context;
 
     await request(app.getHttpServer())
       .post('/tasks')
+      .set(bearer(ownerAuth.accessToken))
       .send(buildCreateTaskDto(actionPlanForTasks.id));
 
-    const response = await request(app.getHttpServer()).get(
-      `/tasks?actionPlanId=${actionPlanForTasks.id}`,
-    );
+    const response = await request(app.getHttpServer())
+      .get(`/tasks?actionPlanId=${actionPlanForTasks.id}`)
+      .set(bearer(ownerAuth.accessToken));
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(
@@ -56,14 +58,35 @@ describe('Tasks - GET /tasks', () => {
   });
 
   it('should return error when action plan does not exist', async () => {
-    const { app } = await context;
+    const { app, ownerAuth } = await context;
 
-    const response = await request(app.getHttpServer()).get(
-      `/tasks?actionPlanId=${NON_EXISTENT_ACTION_PLAN_ID}`,
-    );
+    const response = await request(app.getHttpServer())
+      .get(`/tasks?actionPlanId=${NON_EXISTENT_ACTION_PLAN_ID}`)
+      .set(bearer(ownerAuth.accessToken));
 
     expect(response.status).toBe(400);
     expect(response.body.message).toEqual('Action plan does not exists.');
+  });
+
+  it('should return the same error when the action plan is owned by another user', async () => {
+    const { app, otherAuth, actionPlanForTasks } = await context;
+
+    const response = await request(app.getHttpServer())
+      .get(`/tasks?actionPlanId=${actionPlanForTasks.id}`)
+      .set(bearer(otherAuth.accessToken));
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toEqual('Action plan does not exists.');
+  });
+
+  it('should return 401 without a token', async () => {
+    const { app, actionPlanForTasks } = await context;
+
+    const response = await request(app.getHttpServer()).get(
+      `/tasks?actionPlanId=${actionPlanForTasks.id}`,
+    );
+
+    expect(response.status).toBe(401);
   });
 });
 
@@ -81,15 +104,16 @@ describe('Tasks - GET /tasks/:id', () => {
   });
 
   it('should return a task by id', async () => {
-    const { app, actionPlanForTasks } = await context;
+    const { app, actionPlanForTasks, ownerAuth } = await context;
 
     const created = await request(app.getHttpServer())
       .post('/tasks')
+      .set(bearer(ownerAuth.accessToken))
       .send(buildCreateTaskDto(actionPlanForTasks.id));
 
-    const response = await request(app.getHttpServer()).get(
-      `/tasks/${created.body.id}`,
-    );
+    const response = await request(app.getHttpServer())
+      .get(`/tasks/${created.body.id}`)
+      .set(bearer(ownerAuth.accessToken));
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
@@ -103,11 +127,27 @@ describe('Tasks - GET /tasks/:id', () => {
   });
 
   it('should return not found when task does not exist', async () => {
-    const { app } = await context;
+    const { app, ownerAuth } = await context;
 
-    const response = await request(app.getHttpServer()).get(
-      `/tasks/${NON_EXISTENT_TASK_ID}`,
-    );
+    const response = await request(app.getHttpServer())
+      .get(`/tasks/${NON_EXISTENT_TASK_ID}`)
+      .set(bearer(ownerAuth.accessToken));
+
+    expect(response.status).toBe(404);
+    expect(response.body.message).toEqual('Task not found.');
+  });
+
+  it('should return not found when the task is owned by another user', async () => {
+    const { app, actionPlanForTasks, ownerAuth, otherAuth } = await context;
+
+    const created = await request(app.getHttpServer())
+      .post('/tasks')
+      .set(bearer(ownerAuth.accessToken))
+      .send(buildCreateTaskDto(actionPlanForTasks.id));
+
+    const response = await request(app.getHttpServer())
+      .get(`/tasks/${created.body.id}`)
+      .set(bearer(otherAuth.accessToken));
 
     expect(response.status).toBe(404);
     expect(response.body.message).toEqual('Task not found.');

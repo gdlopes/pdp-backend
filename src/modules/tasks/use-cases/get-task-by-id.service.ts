@@ -10,12 +10,17 @@ export class GetTaskByIdService {
     private tasksRepository: Repository<TasksEntity>,
   ) {}
 
-  public async execute(id: string): Promise<TasksEntity> {
-    const task = await this.tasksRepository.findOneBy({ id });
+  public async execute(userId: string, id: string): Promise<TasksEntity> {
+    const task = await this.tasksRepository.findOne({
+      where: { id },
+      relations: ['actionPlan'],
+    });
 
-    if (!task) {
+    if (!task || !task.actionPlan || task.actionPlan.userId !== userId) {
       throw new NotFoundException('Task not found.');
     }
+
+    delete (task as { actionPlan?: unknown }).actionPlan;
 
     return task;
   }

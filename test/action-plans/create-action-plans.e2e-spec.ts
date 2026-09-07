@@ -1,5 +1,6 @@
 import * as request from 'supertest';
-import { buildCreateActionPlanDto, NON_EXISTENT_USER_ID } from './mock';
+import { bearer } from '../shared/login';
+import { buildCreateActionPlanDto } from './mock';
 import { setupActionPlansE2E, teardownActionPlansE2E } from './setup';
 
 describe('ActionPlans - POST /action-plans', () => {
@@ -16,11 +17,12 @@ describe('ActionPlans - POST /action-plans', () => {
   });
 
   it('should create an action plan successfully', async () => {
-    const { app, userForCreation } = await context;
+    const { app, creatorAuth } = await context;
 
     const response = await request(app.getHttpServer())
       .post('/action-plans')
-      .send(buildCreateActionPlanDto(userForCreation.id));
+      .set(bearer(creatorAuth.accessToken))
+      .send(buildCreateActionPlanDto());
 
     expect(response.status).toBe(201);
     expect(response.body).toEqual({
@@ -28,14 +30,24 @@ describe('ActionPlans - POST /action-plans', () => {
     });
   });
 
-  it('should return error when user does not exist', async () => {
+  it('should return 401 without a token', async () => {
     const { app } = await context;
 
     const response = await request(app.getHttpServer())
       .post('/action-plans')
-      .send(buildCreateActionPlanDto(NON_EXISTENT_USER_ID));
+      .send(buildCreateActionPlanDto());
+
+    expect(response.status).toBe(401);
+  });
+
+  it('should reject a spoofed userId in the body', async () => {
+    const { app, creatorAuth, ownerAuth } = await context;
+
+    const response = await request(app.getHttpServer())
+      .post('/action-plans')
+      .set(bearer(creatorAuth.accessToken))
+      .send({ ...buildCreateActionPlanDto(), userId: ownerAuth.user.id });
 
     expect(response.status).toBe(400);
-    expect(response.body.message).toEqual('User does not exists.');
   });
 });

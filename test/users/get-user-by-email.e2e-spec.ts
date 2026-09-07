@@ -1,7 +1,8 @@
 import * as request from 'supertest';
+import { bearer, login, SEEDED_USER_PASSWORD } from '../shared/login';
 import { setupUsersE2E, teardownUsersE2E } from './setup';
 
-describe('Users - GET /users/email/:email', () => {
+describe('Users - GET /users/email/:email and GET /users/me', () => {
   jest.setTimeout(120000);
 
   const context = setupUsersE2E();
@@ -14,29 +15,55 @@ describe('Users - GET /users/email/:email', () => {
     await teardownUsersE2E(await context);
   });
 
-  it('should return a user by email', async () => {
+  it('does not return a user profile by email', async () => {
     const { app, existentUser } = await context;
-
-    const response = await request(app.getHttpServer()).get(
-      `/users/email/${existentUser.email}`,
+    const { accessToken } = await login(
+      app,
+      existentUser.email,
+      SEEDED_USER_PASSWORD,
     );
 
-    expect(response.status).toBe(200);
-    expect(response.body).toMatchObject({
+    const unauthenticated = await request(app.getHttpServer()).get(
+      `/users/email/${existentUser.email}`,
+    );
+    const authenticated = await request(app.getHttpServer())
+      .get(`/users/email/${existentUser.email}`)
+      .set(bearer(accessToken));
+
+    expect(unauthenticated.status).not.toBe(200);
+    expect(unauthenticated.body).not.toMatchObject({
       id: existentUser.id,
       email: existentUser.email,
     });
-    expect(response.body.passwordHash).toBeUndefined();
+    expect(authenticated.status).not.toBe(200);
+    expect(authenticated.body).not.toMatchObject({
+      id: existentUser.id,
+      email: existentUser.email,
+    });
   });
 
-  it('should return error when user does not exist', async () => {
-    const { app } = await context;
-
-    const response = await request(app.getHttpServer()).get(
-      '/users/email/missing@email.com',
+  it('does not return a current-user profile from GET /users/me', async () => {
+    const { app, existentUser } = await context;
+    const { accessToken } = await login(
+      app,
+      existentUser.email,
+      SEEDED_USER_PASSWORD,
     );
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toEqual('User does not exists.');
+    const unauthenticated = await request(app.getHttpServer()).get('/users/me');
+    const authenticated = await request(app.getHttpServer())
+      .get('/users/me')
+      .set(bearer(accessToken));
+
+    expect(unauthenticated.status).not.toBe(200);
+    expect(unauthenticated.body).not.toMatchObject({
+      id: existentUser.id,
+      email: existentUser.email,
+    });
+    expect(authenticated.status).not.toBe(200);
+    expect(authenticated.body).not.toMatchObject({
+      id: existentUser.id,
+      email: existentUser.email,
+    });
   });
 });

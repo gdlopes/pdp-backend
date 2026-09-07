@@ -58,12 +58,13 @@ describe('GetTasksByActionPlanIdService', () => {
 
       findActionPlanByIdServiceMock.execute.mockResolvedValueOnce({
         id: fakeActionPlanId,
+        userId: 'owner-id',
       });
       jest
         .spyOn(tasksRepositoryMock, 'findBy')
         .mockResolvedValueOnce(fakeTasks);
 
-      const result = await service.execute(fakeActionPlanId);
+      const result = await service.execute('owner-id', fakeActionPlanId);
 
       expect(result).toEqual(fakeTasks);
       expect(findActionPlanByIdServiceMock.execute).toHaveBeenCalledWith(
@@ -77,10 +78,11 @@ describe('GetTasksByActionPlanIdService', () => {
     it('should return an empty list when the action plan has no tasks', async () => {
       findActionPlanByIdServiceMock.execute.mockResolvedValueOnce({
         id: fakeActionPlanId,
+        userId: 'owner-id',
       });
       jest.spyOn(tasksRepositoryMock, 'findBy').mockResolvedValueOnce([]);
 
-      const result = await service.execute(fakeActionPlanId);
+      const result = await service.execute('owner-id', fakeActionPlanId);
 
       expect(result).toEqual([]);
     });
@@ -91,9 +93,22 @@ describe('GetTasksByActionPlanIdService', () => {
         new BadRequestException('Action plan does not exists.'),
       );
 
-      await expect(service.execute(fakeActionPlanId)).rejects.toThrow(
-        'Action plan does not exists.',
-      );
+      await expect(
+        service.execute('owner-id', fakeActionPlanId),
+      ).rejects.toThrow('Action plan does not exists.');
+      expect(findBySpy).not.toHaveBeenCalled();
+    });
+
+    it('should return error when action plan is owned by another user', async () => {
+      const findBySpy = jest.spyOn(tasksRepositoryMock, 'findBy');
+      findActionPlanByIdServiceMock.execute.mockResolvedValueOnce({
+        id: fakeActionPlanId,
+        userId: 'other-user',
+      });
+
+      await expect(
+        service.execute('owner-id', fakeActionPlanId),
+      ).rejects.toThrow('Action plan does not exists.');
       expect(findBySpy).not.toHaveBeenCalled();
     });
   });
