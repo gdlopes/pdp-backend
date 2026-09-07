@@ -15,6 +15,7 @@ Business concepts, data relationships, and current API behavior for the PDP (Per
 ```mermaid
 erDiagram
   Users ||--o{ ActionPlans : owns
+  Users ||--o{ RefreshTokens : has
   ActionPlans ||--o{ Tasks : contains
 
   Users {
@@ -23,6 +24,17 @@ erDiagram
     string password_hash
     timestamp created_at
     timestamp updated_at
+  }
+
+  RefreshTokens {
+    uuid id PK
+    uuid user_id FK
+    string token_hash UK
+    uuid family_id
+    timestamp expires_at
+    timestamp revoked_at
+    uuid replaced_by_id
+    timestamp created_at
   }
 
   ActionPlans {
@@ -62,6 +74,7 @@ Foreign keys:
 
 - `action_plans.user_id` → `users.id`
 - `tasks.action_plan_id` → `action_plans.id` (CASCADE on delete)
+- `refresh_tokens.user_id` → `users.id` (CASCADE on delete)
 
 ## Enums
 
@@ -138,30 +151,46 @@ Defined in: `src/database/entities/tasks.entity.ts`
 | Rule | Detail |
 |------|--------|
 | Email uniqueness | Duplicate email returns `409 Conflict` with message `User already exists.` |
-| Password storage | Hashed with bcrypt (10 rounds) on create; never returned in API responses |
+| Password storage | Hashed with async bcrypt (cost 12) on create; never returned in API responses |
 | Create response | Returns `{ id, email }` only |
+| Public lookups | `GET /users/:id`, `GET /users/email/:email`, and `GET /users/me` are not exposed |
+| Identity for the SPA | Returned as `user: { id, email }` on `POST /auth/login` and `POST /auth/refresh` |
+
+### Auth
+
+Sequence diagrams for login, protected requests, refresh/reuse, and logout are in [architecture.md](./architecture.md#authentication-flow).
+
+| Rule | Detail |
+|------|--------|
+| Login | `POST /auth/login` with email/password; 200 with access JWT + `user`; refresh cookie set |
+| Invalid login | Unknown email and wrong password both return `401` with `Invalid credentials.` |
+| Access token | Bearer JWT, at most 900 seconds, payload `sub`/`iss`/`aud`/`iat`/`exp` |
+| Refresh cookie | HttpOnly, `Path=/auth`, SameSite/Secure from env, opaque (not a JWT), max 7 days |
+| Refresh | `POST /auth/refresh` rotates the cookie and returns a new access token + `user` |
+| Reuse | Replaying a rotated refresh token revokes the family and returns 401 |
+| Logout | `POST /auth/logout` revokes the family, clears the cookie, returns 204 |
+| Public routes | `GET /healthcheck`, `POST /users`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout` |
 
 ### Action Plans
 
 | Rule | Detail |
 |------|--------|
-| User must exist | `userId` is validated via `GetUserByIdService` before create or read |
-| Missing user | Returns `400 Bad Request` with message `User does not exists.` |
+| Owner | Taken from the access token; the body/query must not supply `userId` |
 | Create response | Returns `{ id }` only |
-| List by user | `GET /action-plans?userId=` returns full action plan objects for that user |
-| Get by id | `GET /action-plans/:id?userId=` returns one plan; `404` if not found for that user |
+| List | `GET /action-plans` returns full action plan objects for the authenticated user |
+| Get by id | `GET /action-plans/:id` returns one plan; missing and foreign plans both `404` with `Action plan not found.` |
 
 ### Tasks
 
 | Rule | Detail |
 |------|--------|
-| Parent plan must exist | `actionPlanId` is validated via `FindActionPlanByIdService` on create and list |
-| Missing plan | Returns `400 Bad Request` with message `Action plan does not exists.` |
-| No user identifier | Task endpoints do not accept `userId`; ownership is the parent plan |
+| Parent plan must exist and be owned | `actionPlanId` is validated; foreign plans use the same errors as missing |
+| Missing or foreign plan | Create/list return `400` with `Action plan does not exists.` |
+| No user identifier | Task endpoints do not accept `userId`; ownership is the parent plan + access token |
 | Create | Status is `NOT_STARTED`; response is `{ id }` |
 | Start | `POST /tasks/:id/start` sets `IN_PROGRESS`; already `IN_PROGRESS` is idempotent; `DONE` returns `400` with `Task is already done.` |
 | Complete | `POST /tasks/:id/complete` sets `DONE` from `IN_PROGRESS`; already `DONE` is idempotent; `NOT_STARTED` returns `400` with `Task has not been started.` |
-| Missing task | Get, start, complete, and delete return `404` with `Task not found.` |
+| Missing or foreign task | Get, start, complete, and delete return `404` with `Task not found.` |
 | Delete | Returns `204 No Content` |
 
 ### Healthcheck
@@ -175,16 +204,19 @@ Defined in: `src/database/entities/tasks.entity.ts`
 | Domain | Method | Route | Status codes |
 |--------|--------|-------|--------------|
 | healthcheck | `GET` | `/healthcheck` | `200` |
-| users | `POST` | `/users` | `201`, `409` |
-| action-plans | `POST` | `/action-plans` | `201`, `400` |
-| action-plans | `GET` | `/action-plans?userId=` | `200`, `400` |
-| action-plans | `GET` | `/action-plans/:id?userId=` | `200`, `400`, `404` |
-| tasks | `POST` | `/tasks` | `201`, `400` |
-| tasks | `GET` | `/tasks?actionPlanId=` | `200`, `400` |
-| tasks | `GET` | `/tasks/:id` | `200`, `404` |
-| tasks | `POST` | `/tasks/:id/start` | `200`, `400`, `404` |
-| tasks | `POST` | `/tasks/:id/complete` | `200`, `400`, `404` |
-| tasks | `DELETE` | `/tasks/:id` | `204`, `404` |
+| users | `POST` | `/users` | `201`, `409`, `429` |
+| auth | `POST` | `/auth/login` | `200`, `400`, `401`, `429` |
+| auth | `POST` | `/auth/refresh` | `200`, `401`, `429` |
+| auth | `POST` | `/auth/logout` | `204` |
+| action-plans | `POST` | `/action-plans` | `201`, `400`, `401` |
+| action-plans | `GET` | `/action-plans` | `200`, `401` |
+| action-plans | `GET` | `/action-plans/:id` | `200`, `401`, `404` |
+| tasks | `POST` | `/tasks` | `201`, `400`, `401` |
+| tasks | `GET` | `/tasks?actionPlanId=` | `200`, `400`, `401` |
+| tasks | `GET` | `/tasks/:id` | `200`, `401`, `404` |
+| tasks | `POST` | `/tasks/:id/start` | `200`, `400`, `401`, `404` |
+| tasks | `POST` | `/tasks/:id/complete` | `200`, `400`, `401`, `404` |
+| tasks | `DELETE` | `/tasks/:id` | `204`, `401`, `404` |
 
 Interactive documentation: `http://localhost:3000/api/docs`
 
@@ -203,8 +235,6 @@ Document these so agents do not copy incorrect patterns:
 
 These are implied by the schema or product direction but have no API or OpenSpec requirements yet:
 
-- User authentication (login, JWT/session)
-- Action plan update and delete
 - Pagination for list endpoints
 
 When implementing any of these, start with a focused change spec (future OpenSpec workflow) rather than expanding this document with implementation details.
