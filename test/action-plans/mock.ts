@@ -1,9 +1,4 @@
-import {
-  CreateActionPlanDto,
-  CurrentLevelEnum,
-  ExpectedLevelEnum,
-  ReviewCommitmentEnum,
-} from '../../src/modules/action-plans/dto/create-action-plan.dto';
+import { CreateActionPlanDto } from '../../src/modules/action-plans/dto/create-action-plan.dto';
 import { NON_EXISTENT_USER_ID } from '../users/mock';
 
 export { NON_EXISTENT_USER_ID };
@@ -13,22 +8,11 @@ export const buildCreateActionPlanDto = (
   overrides: Partial<CreateActionPlanDto> = {},
 ): CreateActionPlanDto => ({
   title: 'Kubernetes',
-  goal: 'To improve my knowledge.',
-  alignmentWithLifeCareer:
-    'It aligns with my goal of becoming a senior engineer.',
-  motivation: 'I want to improve my skills for a new project at work.',
-  currentLevel: CurrentLevelEnum.BEGINNER,
-  expectedLevel: ExpectedLevelEnum.ENHANCE_CURRENT_LEVEL,
   specificGoal: 'Deploy and manage a Kubernetes cluster in production.',
-  progressTrackingMethod:
-    'By completing weekly labs and passing certification exams.',
+  deadline: new Date('2025-12-31'),
   resources: 'Online courses, documentation, and a lab environment.',
-  developmentImpact: 'It will enable me to lead cloud-native projects at work.',
-  estimatedCompletionDate: new Date('2025-12-31'),
-  learningMethod: 'Through hands-on practice and online courses.',
-  timeCommitment: 3,
-  knowledgeApplication: 'By implementing Kubernetes in my current project.',
+  successIndicator:
+    'By completing weekly labs and passing certification exams.',
   rewards: 'Take a weekend trip to celebrate.',
-  reviewCommitment: ReviewCommitmentEnum.WEEKLY,
   ...overrides,
 });

@@ -72,6 +72,9 @@ Return only fields the client needs. Never expose passwords or internal hashes.
 | `POST /action-plans` | `{ id }` |
 | `GET /action-plans` | Array of the authenticated user's action plan objects |
 | `GET /action-plans/:id` | Single action plan object |
+| `POST /action-plans/:id/start` | `{ id, status }` (`IN_PROGRESS`) |
+| `POST /action-plans/:id/complete` | `{ id, status }` (`COMPLETED`) |
+| `POST /action-plans/:id/archive` | `{ id, status }` (`ARCHIVED`) |
 | `POST /tasks` | `{ id }` |
 | `GET /tasks?actionPlanId=` | Array of task objects (`id`, `actionPlanId`, `description`, `status`, `createdAt`, `updatedAt`) |
 | `GET /tasks/:id` | Single task object |
@@ -196,6 +199,9 @@ POST /auth/logout
 POST /action-plans
 GET  /action-plans
 GET  /action-plans/:id
+POST /action-plans/:id/start
+POST /action-plans/:id/complete
+POST /action-plans/:id/archive
 ```
 
 Current tasks routes:

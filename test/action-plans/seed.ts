@@ -1,5 +1,7 @@
 import { DataSource } from 'typeorm';
-import ActionPlansEntity from '../../src/database/entities/action-plans.entity';
+import ActionPlansEntity, {
+  ActionPlanStatusEnum,
+} from '../../src/database/entities/action-plans.entity';
 import UsersEntity from '../../src/database/entities/users.entity';
 import { defaultPasswordHash, seedExistentUser } from '../users/seed';
 
@@ -12,21 +14,12 @@ export const seedActionPlans = async (
   const mockActionPlan = new ActionPlansEntity();
   mockActionPlan.userId = userId;
   mockActionPlan.title = 'Seeded Action Plan';
-  mockActionPlan.goal = 'Improve Kubernetes knowledge';
-  mockActionPlan.alignmentWithLifeCareer = 'Career growth';
-  mockActionPlan.motivation = 'New project at work';
-  mockActionPlan.currentLevel = 'BEGINNER';
-  mockActionPlan.expectedLevel = 'ENHANCE_CURRENT_LEVEL';
   mockActionPlan.specificGoal = 'Deploy a cluster in production';
-  mockActionPlan.progressTrackingMethod = 'Weekly labs';
+  mockActionPlan.deadline = new Date('2025-12-31');
   mockActionPlan.resources = 'Courses and documentation';
-  mockActionPlan.developmentImpact = 'Lead cloud-native projects';
-  mockActionPlan.estimatedCompletionDate = new Date('2025-12-31');
-  mockActionPlan.learningMethod = 'Hands-on practice';
-  mockActionPlan.timeCommitment = 3;
-  mockActionPlan.knowledgeApplication = 'Apply in current project';
+  mockActionPlan.successIndicator = 'Weekly labs';
   mockActionPlan.rewards = 'Weekend trip';
-  mockActionPlan.reviewCommitment = 'WEEKLY';
+  mockActionPlan.status = ActionPlanStatusEnum.NOT_STARTED;
 
   return actionPlansRepository.save(mockActionPlan);
 };

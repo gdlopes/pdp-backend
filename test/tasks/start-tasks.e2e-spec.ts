@@ -62,20 +62,31 @@ describe('Tasks - POST /tasks/:id/start', () => {
   it('should return error when the task is already done', async () => {
     const { app, actionPlanForTasks, ownerAuth } = await context;
 
-    const created = await request(app.getHttpServer())
+    const first = await request(app.getHttpServer())
       .post('/tasks')
       .set(bearer(ownerAuth.accessToken))
       .send(buildCreateTaskDto(actionPlanForTasks.id));
+    const second = await request(app.getHttpServer())
+      .post('/tasks')
+      .set(bearer(ownerAuth.accessToken))
+      .send(
+        buildCreateTaskDto(actionPlanForTasks.id, {
+          description: 'Keep the plan in progress',
+        }),
+      );
 
     await request(app.getHttpServer())
-      .post(`/tasks/${created.body.id}/start`)
+      .post(`/tasks/${first.body.id}/start`)
       .set(bearer(ownerAuth.accessToken));
     await request(app.getHttpServer())
-      .post(`/tasks/${created.body.id}/complete`)
+      .post(`/tasks/${second.body.id}/start`)
+      .set(bearer(ownerAuth.accessToken));
+    await request(app.getHttpServer())
+      .post(`/tasks/${first.body.id}/complete`)
       .set(bearer(ownerAuth.accessToken));
 
     const response = await request(app.getHttpServer())
-      .post(`/tasks/${created.body.id}/start`)
+      .post(`/tasks/${first.body.id}/start`)
       .set(bearer(ownerAuth.accessToken));
 
     expect(response.status).toBe(400);
