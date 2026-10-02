@@ -1,10 +1,4 @@
-# action-plans Specification
-
-## Purpose
-
-Lets an authenticated user create, read, start, complete, and archive their own personal development plans. Ownership comes from the access token. Plans store objective fields (title, specific goal, deadline, resources, success indicator, reward) and a lifecycle status.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Create an action plan for the authenticated user
 
@@ -89,6 +83,8 @@ The system SHALL return a single action plan with `GET /action-plans/:id` when t
 - **WHEN** an authenticated client sends `GET /action-plans/:id` for a plan they own whose status is `COMPLETED` or `ARCHIVED`
 - **THEN** the response status is 200
 - **AND** the body includes that status
+
+## ADDED Requirements
 
 ### Requirement: Start an action plan
 

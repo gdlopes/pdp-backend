@@ -1,10 +1,4 @@
-# tasks Specification
-
-## Purpose
-
-Lets a client attach concrete work items to an action plan, inspect them, move them through not-started / in-progress / done, and remove them so a personal development plan can be executed. Task writes are rejected when the parent plan is completed or archived.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Create a task for an existing action plan
 
