@@ -1,9 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  CurrentLevelEnum,
-  ExpectedLevelEnum,
-  ReviewCommitmentEnum,
-} from '../dto/create-action-plan.dto';
+import { ActionPlanStatusEnum } from '../../../database/entities/action-plans.entity';
 
 export class ActionPlanResponse {
   @ApiProperty({
@@ -25,99 +21,43 @@ export class ActionPlanResponse {
   title: string;
 
   @ApiProperty({
-    description: 'Action plan main goal',
-    example: 'To improve my knowledge.',
-  })
-  goal: string;
-
-  @ApiProperty({
-    description: 'How this goal aligns with career or personal life',
-    example: 'It aligns with my goal of becoming a senior engineer.',
-  })
-  alignmentWithLifeCareer: string;
-
-  @ApiProperty({
-    description: 'Main motivation for seeking this knowledge',
-    example: 'I want to improve my skills for a new project at work.',
-  })
-  motivation: string;
-
-  @ApiProperty({
-    description: 'Current level of knowledge or skill in this area',
-    enum: CurrentLevelEnum,
-    example: CurrentLevelEnum.BEGINNER,
-  })
-  currentLevel: CurrentLevelEnum;
-
-  @ApiProperty({
-    description: 'Expected level of knowledge this plan can achieve',
-    enum: ExpectedLevelEnum,
-    example: ExpectedLevelEnum.INTERMEDIARY,
-  })
-  expectedLevel: ExpectedLevelEnum;
-
-  @ApiProperty({
-    description: 'Specific achievement goal',
+    description: 'Specific outcome or result to achieve',
     example: 'Deploy and manage a Kubernetes cluster in production.',
   })
   specificGoal: string;
 
   @ApiProperty({
-    description: 'Method for tracking progress',
-    example: 'By completing weekly labs and passing certification exams.',
+    description: 'Target completion date for the plan',
+    example: '2025-12-31T00:00:00.000Z',
+    type: String,
+    format: 'date-time',
   })
-  progressTrackingMethod: string;
+  deadline: Date;
 
   @ApiProperty({
-    description: 'Available resources for this development',
+    description: 'Tools, skills, budget, or support needed',
     example: 'Online courses, documentation, and a lab environment.',
   })
   resources: string;
 
   @ApiProperty({
-    description: 'Expected impact on career or personal life',
-    example: 'It will enable me to lead cloud-native projects at work.',
+    description: 'How progress is measured and what proves the goal is done',
+    example: 'Weekly labs completed; CKA exam passed.',
   })
-  developmentImpact: string;
+  successIndicator: string;
 
   @ApiProperty({
-    description: 'Projected date for achieving this goal',
-    example: '2025-12-31T00:00:00.000Z',
-    type: String,
-    format: 'date-time',
-  })
-  estimatedCompletionDate: Date;
-
-  @ApiProperty({
-    description: 'Planned learning method',
-    example: 'Through hands-on practice and online courses.',
-  })
-  learningMethod: string;
-
-  @ApiProperty({
-    description: 'Number of days per week dedicated to development',
-    example: 3,
-  })
-  timeCommitment: number;
-
-  @ApiProperty({
-    description: 'How the acquired knowledge will be applied',
-    example: 'By implementing Kubernetes in my current project.',
-  })
-  knowledgeApplication: string;
-
-  @ApiProperty({
-    description: 'Planned reward upon achieving the goal',
+    description: 'Reward for completing the plan',
     example: 'Take a weekend trip to celebrate.',
   })
   rewards: string;
 
   @ApiProperty({
-    description: 'Frequency for reviewing and adjusting the plan',
-    enum: ReviewCommitmentEnum,
-    example: ReviewCommitmentEnum.WEEKLY,
+    description: 'Current action plan lifecycle status',
+    enum: ActionPlanStatusEnum,
+    example: ActionPlanStatusEnum.NOT_STARTED,
   })
-  reviewCommitment: ReviewCommitmentEnum;
+  status: ActionPlanStatusEnum;
 
   @ApiProperty({
     description: 'Date when the action plan was created',

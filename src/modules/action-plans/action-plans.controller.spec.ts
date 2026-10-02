@@ -1,22 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ActionPlanStatusEnum } from '../../database/entities/action-plans.entity';
 import { ActionPlansController } from './action-plans.controller';
-import {
-  CurrentLevelEnum,
-  ExpectedLevelEnum,
-  ReviewCommitmentEnum,
-} from './dto/create-action-plan.dto';
+import { CreateActionPlanDto } from './dto/create-action-plan.dto';
+import { ArchiveActionPlanService } from './use-cases/archive-action-plan.service';
+import { CompleteActionPlanService } from './use-cases/complete-action-plan.service';
 import { CreateActionPlansService } from './use-cases/create-action-plans.service';
 import { GetActionPlanByIdService } from './use-cases/get-action-plan-by-id.service';
 import { GetActionPlansByUserIdService } from './use-cases/get-action-plans-by-user-id.service';
+import { StartActionPlanService } from './use-cases/start-action-plan.service';
 
 describe('ActionPlansController', () => {
   let controller: ActionPlansController;
   let createService: CreateActionPlansService;
   let getByUserIdService: GetActionPlansByUserIdService;
   let getByIdService: GetActionPlanByIdService;
+  let startService: StartActionPlanService;
+  let completeService: CompleteActionPlanService;
+  let archiveService: ArchiveActionPlanService;
 
   const createdResponse = { id: 'plan-1' };
   const currentUser = { id: 'user-123' };
+  const statusResponse = {
+    id: 'plan-1',
+    status: ActionPlanStatusEnum.IN_PROGRESS,
+  };
 
   const fakeActionPlans = [
     { id: 'plan-1', userId: 'user-123', title: 'Plano 1' },
@@ -25,23 +32,13 @@ describe('ActionPlansController', () => {
 
   const fakeActionPlan = { id: 'plan-1', userId: 'user-123', title: 'Plano 1' };
 
-  const createActionPlanDto = {
+  const createActionPlanDto: CreateActionPlanDto = {
     title: 'Plano de Ação',
-    goal: 'Meu objetivo',
-    alignmentWithLifeCareer: 'Alinhamento',
-    motivation: 'Minha motivação',
-    currentLevel: CurrentLevelEnum.BEGINNER,
-    expectedLevel: ExpectedLevelEnum.INTERMEDIARY,
     specificGoal: 'Meta específica',
-    progressTrackingMethod: 'Método',
+    deadline: new Date(),
     resources: 'Recursos',
-    developmentImpact: 'Impacto',
-    estimatedCompletionDate: new Date(),
-    learningMethod: 'Aprendizado',
-    timeCommitment: 2,
-    knowledgeApplication: 'Aplicação',
+    successIndicator: 'Indicador',
     rewards: 'Recompensas',
-    reviewCommitment: ReviewCommitmentEnum.BIWEEKLY,
   };
 
   beforeEach(async () => {
@@ -66,6 +63,30 @@ describe('ActionPlansController', () => {
             execute: jest.fn().mockResolvedValue(fakeActionPlan),
           },
         },
+        {
+          provide: StartActionPlanService,
+          useValue: {
+            execute: jest.fn().mockResolvedValue(statusResponse),
+          },
+        },
+        {
+          provide: CompleteActionPlanService,
+          useValue: {
+            execute: jest.fn().mockResolvedValue({
+              id: 'plan-1',
+              status: ActionPlanStatusEnum.COMPLETED,
+            }),
+          },
+        },
+        {
+          provide: ArchiveActionPlanService,
+          useValue: {
+            execute: jest.fn().mockResolvedValue({
+              id: 'plan-1',
+              status: ActionPlanStatusEnum.ARCHIVED,
+            }),
+          },
+        },
       ],
     }).compile();
 
@@ -78,6 +99,13 @@ describe('ActionPlansController', () => {
     );
     getByIdService = module.get<GetActionPlanByIdService>(
       GetActionPlanByIdService,
+    );
+    startService = module.get<StartActionPlanService>(StartActionPlanService);
+    completeService = module.get<CompleteActionPlanService>(
+      CompleteActionPlanService,
+    );
+    archiveService = module.get<ArchiveActionPlanService>(
+      ArchiveActionPlanService,
     );
   });
 
@@ -109,5 +137,38 @@ describe('ActionPlansController', () => {
 
     expect(response).toEqual(fakeActionPlan);
     expect(getByIdService.execute).toHaveBeenCalledWith(currentUser.id, id);
+  });
+
+  it('POST action-plans start', async () => {
+    const id = 'plan-1';
+
+    const response = await controller.start(currentUser, id);
+
+    expect(response).toEqual(statusResponse);
+    expect(startService.execute).toHaveBeenCalledWith(currentUser.id, id);
+  });
+
+  it('POST action-plans complete', async () => {
+    const id = 'plan-1';
+
+    const response = await controller.complete(currentUser, id);
+
+    expect(response).toEqual({
+      id: 'plan-1',
+      status: ActionPlanStatusEnum.COMPLETED,
+    });
+    expect(completeService.execute).toHaveBeenCalledWith(currentUser.id, id);
+  });
+
+  it('POST action-plans archive', async () => {
+    const id = 'plan-1';
+
+    const response = await controller.archive(currentUser, id);
+
+    expect(response).toEqual({
+      id: 'plan-1',
+      status: ActionPlanStatusEnum.ARCHIVED,
+    });
+    expect(archiveService.execute).toHaveBeenCalledWith(currentUser.id, id);
   });
 });

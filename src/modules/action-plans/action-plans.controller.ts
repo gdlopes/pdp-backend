@@ -1,5 +1,14 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+} from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiNotFoundResponse,
@@ -10,16 +19,19 @@ import {
 } from '@nestjs/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../auth/types/authenticated-user';
-import { CreateActionPlanDto } from './dto/create-action-plan.dto';
+import { ActionPlanStatusResponseDto, CreateActionPlanDto } from './dto';
 import {
   CreateActionPlanResponse,
   GetActionPlanByIdResponse,
   GetActionPlansByUserIdResponse,
 } from './swagger';
 import {
+  ArchiveActionPlanService,
+  CompleteActionPlanService,
   CreateActionPlansService,
   GetActionPlanByIdService,
   GetActionPlansByUserIdService,
+  StartActionPlanService,
 } from './use-cases';
 
 @Controller('action-plans')
@@ -31,6 +43,9 @@ export class ActionPlansController {
     private readonly createActionPlansService: CreateActionPlansService,
     private readonly getActionPlansByUserIdService: GetActionPlansByUserIdService,
     private readonly getActionPlanByIdService: GetActionPlanByIdService,
+    private readonly startActionPlanService: StartActionPlanService,
+    private readonly completeActionPlanService: CompleteActionPlanService,
+    private readonly archiveActionPlanService: ArchiveActionPlanService,
   ) {}
 
   @Post()
@@ -70,5 +85,47 @@ export class ActionPlansController {
   })
   findOne(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.getActionPlanByIdService.execute(user.id, id);
+  }
+
+  @Post(':id/start')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Starts an action plan.' })
+  @ApiOkResponse({
+    description: 'The action plan has been successfully started.',
+    type: ActionPlanStatusResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Action plan is completed or archived.',
+  })
+  @ApiNotFoundResponse({ description: 'Action plan not found.' })
+  start(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.startActionPlanService.execute(user.id, id);
+  }
+
+  @Post(':id/complete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Completes an action plan.' })
+  @ApiOkResponse({
+    description: 'The action plan has been successfully completed.',
+    type: ActionPlanStatusResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Action plan has not been started or is archived.',
+  })
+  @ApiNotFoundResponse({ description: 'Action plan not found.' })
+  complete(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.completeActionPlanService.execute(user.id, id);
+  }
+
+  @Post(':id/archive')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Archives an action plan.' })
+  @ApiOkResponse({
+    description: 'The action plan has been successfully archived.',
+    type: ActionPlanStatusResponseDto,
+  })
+  @ApiNotFoundResponse({ description: 'Action plan not found.' })
+  archive(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.archiveActionPlanService.execute(user.id, id);
   }
 }

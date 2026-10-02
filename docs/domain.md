@@ -6,7 +6,7 @@ Business concepts, data relationships, and current API behavior for the PDP (Per
 
 | Term | Description |
 |------|-------------|
-| **PDP / Action Plan** | A structured personal development plan with goals, skill levels, learning methods, and review commitments |
+| **PDP / Action Plan** | A personal development plan with a title, specific goal, deadline, resources, success indicator, reward, and lifecycle status |
 | **User** | Account owner who creates and owns action plans |
 | **Task** | A concrete action item linked to an action plan, tracked by status |
 
@@ -41,21 +41,12 @@ erDiagram
     uuid id PK
     uuid user_id FK
     string title
-    string goal
-    string alignment_with_life_career
-    string motivation
-    enum current_level
-    enum expected_level
     string specific_goal
-    string progress_tracking_method
+    timestamp deadline
     string resources
-    string development_impact
-    timestamp estimated_completion_date
-    string learning_method
-    string time_commitment
-    string knowledge_application
+    string success_indicator
     string rewards
-    enum review_commitment
+    enum status
     timestamp created_at
     timestamp updated_at
   }
@@ -78,61 +69,18 @@ Foreign keys:
 
 ## Enums
 
-### CurrentLevelEnum
+### ActionPlanStatusEnum
 
-Skill level at the start of the plan.
-
-| Value | Meaning |
-|-------|---------|
-| `BEGINNER` | Starting from scratch |
-| `INTERMEDIARY` | Some prior knowledge |
-| `ADVANCED` | Strong existing foundation |
-| `EXPERT` | Near mastery |
-
-Defined in: `src/database/entities/action-plans.entity.ts`, `src/modules/action-plans/dto/create-action-plan.dto.ts`
-
-### ExpectedLevelEnum
-
-Target outcome of the plan.
-
-**Entity / database** (`action-plans.entity.ts`):
+Lifecycle of an action plan. `COMPLETED` and `ARCHIVED` are terminal.
 
 | Value | Meaning |
 |-------|---------|
-| `ACHIEVE_NEXT_LEVEL` | Move to the next skill tier |
-| `ENHANCE_CURRENT_LEVEL` | Deepen skills at current tier |
+| `NOT_STARTED` | Created; no work started |
+| `IN_PROGRESS` | User started the plan or the first task was started |
+| `COMPLETED` | User completed the plan or every task is `DONE` |
+| `ARCHIVED` | User archived the plan (from any prior status) |
 
-**DTO** (`create-action-plan.dto.ts`) — **differs from entity**:
-
-| Value |
-|-------|
-| `ENHANCE_CURRENT_LEVEL` |
-| `INTERMEDIARY` |
-| `ADVANCED` |
-| `EXPERT` |
-
-This mismatch is a known inconsistency. New work should align DTO and entity before adding more endpoints.
-
-### ReviewCommitmentEnum
-
-How often the user commits to reviewing the plan.
-
-**Entity:**
-
-| Value |
-|-------|
-| `DAILY` |
-| `WEEKLY` |
-| `BIWEEKLY` |
-| `MONTHLY` |
-
-**DTO** — missing `DAILY`:
-
-| Value |
-|-------|
-| `WEEKLY` |
-| `BIWEEKLY` |
-| `MONTHLY` |
+Defined in: `src/database/entities/action-plans.entity.ts` (reused by swagger; not accepted on create)
 
 ### TaskStatusEnum
 
@@ -176,9 +124,14 @@ Sequence diagrams for login, protected requests, refresh/reuse, and logout are i
 | Rule | Detail |
 |------|--------|
 | Owner | Taken from the access token; the body/query must not supply `userId` |
-| Create response | Returns `{ id }` only |
-| List | `GET /action-plans` returns full action plan objects for the authenticated user |
-| Get by id | `GET /action-plans/:id` returns one plan; missing and foreign plans both `404` with `Action plan not found.` |
+| Create fields | `title`, `specificGoal`, `deadline`, `resources`, `successIndicator`, `rewards` (all required). `status` is not accepted |
+| Create status | Server sets `NOT_STARTED`; response is `{ id }` |
+| List / get | Return `id`, `userId`, `title`, `specificGoal`, `deadline`, `resources`, `successIndicator`, `rewards`, `status`, `createdAt`, `updatedAt` |
+| Get by id | Missing and foreign plans both `404` with `Action plan not found.` Reads succeed for `COMPLETED` and `ARCHIVED` |
+| Start | `POST /action-plans/:id/start` sets `IN_PROGRESS`; already `IN_PROGRESS` is idempotent; `COMPLETED`/`ARCHIVED` return `400` |
+| Complete | `POST /action-plans/:id/complete` sets `COMPLETED` from `IN_PROGRESS` even if tasks remain; already `COMPLETED` is idempotent; `NOT_STARTED` returns `400` `Action plan has not been started.`; `ARCHIVED` returns `400` |
+| Archive | `POST /action-plans/:id/archive` sets `ARCHIVED` from any status; already `ARCHIVED` is idempotent |
+| Terminal | `COMPLETED` and `ARCHIVED` cannot return to `NOT_STARTED` or `IN_PROGRESS` |
 
 ### Tasks
 
@@ -187,11 +140,12 @@ Sequence diagrams for login, protected requests, refresh/reuse, and logout are i
 | Parent plan must exist and be owned | `actionPlanId` is validated; foreign plans use the same errors as missing |
 | Missing or foreign plan | Create/list return `400` with `Action plan does not exists.` |
 | No user identifier | Task endpoints do not accept `userId`; ownership is the parent plan + access token |
-| Create | Status is `NOT_STARTED`; response is `{ id }` |
-| Start | `POST /tasks/:id/start` sets `IN_PROGRESS`; already `IN_PROGRESS` is idempotent; `DONE` returns `400` with `Task is already done.` |
-| Complete | `POST /tasks/:id/complete` sets `DONE` from `IN_PROGRESS`; already `DONE` is idempotent; `NOT_STARTED` returns `400` with `Task has not been started.` |
+| Create | Status is `NOT_STARTED`; response is `{ id }`; does not change plan status |
+| Frozen parent | Create/start/complete/delete on `COMPLETED` or `ARCHIVED` plans return `400` (`Action plan is completed.` / `Action plan is archived.`). List/get still succeed |
+| Start | `POST /tasks/:id/start` sets task `IN_PROGRESS`; already `IN_PROGRESS` is idempotent; `DONE` returns `400` with `Task is already done.`; first start on a `NOT_STARTED` plan sets the plan to `IN_PROGRESS` |
+| Complete | `POST /tasks/:id/complete` sets `DONE` from `IN_PROGRESS`; already `DONE` is idempotent only while the plan is mutable; `NOT_STARTED` returns `400` with `Task has not been started.`; last remaining `DONE` task on an `IN_PROGRESS` plan sets the plan to `COMPLETED` |
 | Missing or foreign task | Get, start, complete, and delete return `404` with `Task not found.` |
-| Delete | Returns `204 No Content` |
+| Delete | Returns `204 No Content`; does not revert an `IN_PROGRESS` plan to `NOT_STARTED` |
 
 ### Healthcheck
 
@@ -211,6 +165,9 @@ Sequence diagrams for login, protected requests, refresh/reuse, and logout are i
 | action-plans | `POST` | `/action-plans` | `201`, `400`, `401` |
 | action-plans | `GET` | `/action-plans` | `200`, `401` |
 | action-plans | `GET` | `/action-plans/:id` | `200`, `401`, `404` |
+| action-plans | `POST` | `/action-plans/:id/start` | `200`, `400`, `401`, `404` |
+| action-plans | `POST` | `/action-plans/:id/complete` | `200`, `400`, `401`, `404` |
+| action-plans | `POST` | `/action-plans/:id/archive` | `200`, `401`, `404` |
 | tasks | `POST` | `/tasks` | `201`, `400`, `401` |
 | tasks | `GET` | `/tasks?actionPlanId=` | `200`, `400`, `401` |
 | tasks | `GET` | `/tasks/:id` | `200`, `401`, `404` |
@@ -226,10 +183,7 @@ Document these so agents do not copy incorrect patterns:
 
 | Issue | Location | Detail |
 |-------|----------|--------|
-| `ExpectedLevelEnum` mismatch | Entity vs DTO | Entity uses goal-oriented values; DTO uses skill-level values |
-| `ReviewCommitmentEnum` mismatch | Entity vs DTO | Entity includes `DAILY`; DTO does not |
-| `timeCommitment` type | Entity | TypeScript property typed as `number`, DB column is `varchar` |
-| Action plan `id` in e2e | `test/action-plans/` | Some tests expect numeric id; migrations use UUID |
+| Action plan `id` mapping | Entity vs migration | Entity uses `@PrimaryGeneratedColumn()` without uuid; migrations use UUID |
 
 ## Planned areas (not yet specified)
 

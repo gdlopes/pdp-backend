@@ -109,6 +109,7 @@ npm run migration:revert
 | `1742902163805` | `create-action-plans-table.ts` | `action_plans` + FK to users |
 | `1745024081620` | `create-tasks-table.ts` | `tasks` + FK to action_plans |
 | `1788396601973` | `create-refresh-tokens-table.ts` | `refresh_tokens` + FK to users |
+| `1789200000000` | `simplify-action-plans-columns.ts` | Drop coaching columns; rename deadline/success_indicator; add `status` |
 
 ### Migration rules
 
@@ -124,9 +125,7 @@ The dev compose stack runs `npm run migration:run` before `start:dev`, so new mi
 
 ## Enums in the database
 
-Postgres enum columns are stored as `varchar` in migrations (e.g. `current_level`, `status`). TypeScript enums in entities and DTOs provide type safety at the application layer.
-
-Keep entity enums and DTO enums in sync — see known mismatches in [domain.md](./domain.md).
+Postgres enum columns are stored as `varchar` in migrations (e.g. action-plan `status`, task `status`). TypeScript enums on the entity (exported and reused by swagger) provide type safety at the application layer.
 
 ## E2E test database
 
@@ -143,7 +142,6 @@ See [testing.md](./testing.md).
 
 | Field | Issue |
 |-------|-------|
-| `timeCommitment` | Entity types as `number`, DB column is `varchar` — align on future changes |
 | `password_hash` | Migration marks as `unique` — likely unintentional; do not rely on this for business logic |
 
 ## Related docs

@@ -1,14 +1,11 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import ActionPlansEntity from '../../../database/entities/action-plans.entity';
+import ActionPlansEntity, {
+  ActionPlanStatusEnum,
+} from '../../../database/entities/action-plans.entity';
 import { GetUserByIdService } from '../../users/use-cases/get-user-by-id.service';
-import {
-  CreateActionPlanDto,
-  CurrentLevelEnum,
-  ExpectedLevelEnum,
-  ReviewCommitmentEnum,
-} from '../dto/create-action-plan.dto';
+import { CreateActionPlanDto } from '../dto/create-action-plan.dto';
 import { CreateActionPlansService } from './create-action-plans.service';
 
 const actionPlansRepositoryMock = {
@@ -49,24 +46,14 @@ describe('CreateActionPlansService', () => {
   describe('#execute', () => {
     const fakeActionPlanData: CreateActionPlanDto = {
       title: 'fake-title',
-      goal: 'fake-goal',
-      alignmentWithLifeCareer: 'fake-alignment-with-life-carrier',
-      motivation: 'fake-motivation',
-      currentLevel: CurrentLevelEnum.BEGINNER,
-      expectedLevel: ExpectedLevelEnum.INTERMEDIARY,
       specificGoal: 'fake-specific-goal',
-      progressTrackingMethod: 'fake-progress-tracking-method',
+      deadline: new Date('2025-12-31'),
       resources: 'fake-resources',
-      developmentImpact: 'fake-development-impact',
-      estimatedCompletionDate: new Date(),
-      learningMethod: 'fake-learning-method',
-      timeCommitment: 3,
-      knowledgeApplication: 'fake-knowledge-application',
+      successIndicator: 'fake-success-indicator',
       rewards: 'fake-rewards',
-      reviewCommitment: ReviewCommitmentEnum.BIWEEKLY,
     };
 
-    it('should create an action plan successfully', async () => {
+    it('should create an action plan with NOT_STARTED status', async () => {
       getUserByIdServiceMock.execute.mockResolvedValueOnce({
         id: 'existent-user-id',
       });
@@ -81,7 +68,19 @@ describe('CreateActionPlansService', () => {
         'fake-user-id',
       );
       expect(actionPlansRepositoryMock.save).toHaveBeenCalledWith(
-        expect.objectContaining({ userId: 'fake-user-id' }),
+        expect.objectContaining({
+          userId: 'fake-user-id',
+          title: fakeActionPlanData.title,
+          specificGoal: fakeActionPlanData.specificGoal,
+          deadline: fakeActionPlanData.deadline,
+          resources: fakeActionPlanData.resources,
+          successIndicator: fakeActionPlanData.successIndicator,
+          rewards: fakeActionPlanData.rewards,
+          status: ActionPlanStatusEnum.NOT_STARTED,
+        }),
+      );
+      expect(actionPlansRepositoryMock.save).not.toHaveBeenCalledWith(
+        expect.objectContaining({ status: ActionPlanStatusEnum.COMPLETED }),
       );
     });
 

@@ -242,7 +242,7 @@ E2E tests must also use `FastifyAdapter` and `configureApp` (see `test/shared/se
 | Healthcheck | `src/modules/healthcheck/` | `GET /healthcheck` (public) |
 | Auth | `src/modules/auth/` | `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout` (public w.r.t. access token) |
 | Users | `src/modules/users/` | `POST /users` (public, rate-limited) |
-| Action Plans | `src/modules/action-plans/` | `POST /action-plans`, `GET /action-plans`, `GET /action-plans/:id` (Bearer required; no client `userId`) |
+| Action Plans | `src/modules/action-plans/` | `POST /action-plans`, `GET /action-plans`, `GET /action-plans/:id`, `POST /action-plans/:id/start`, `/complete`, `/archive` (Bearer required; no client `userId`) |
 | Tasks | `src/modules/tasks/` | `POST /tasks`, `GET /tasks?actionPlanId=`, `GET /tasks/:id`, `POST /tasks/:id/start`, `POST /tasks/:id/complete`, `DELETE /tasks/:id` (Bearer required) |
 
 Internal use-cases (not exposed via HTTP):
@@ -250,6 +250,8 @@ Internal use-cases (not exposed via HTTP):
 - `GetUserByIdService` — used by action-plans module
 - `GetUserByEmailService` — used by login (returns `null` when missing)
 - `FindActionPlanByIdService` — used by tasks module (lookup by id)
+- `AssertActionPlanWritableService` — used by tasks to reject `COMPLETED` / `ARCHIVED` parents
+- `StartActionPlanService` / `CompleteActionPlanService` — used by HTTP and by task start/complete to move plan status forward
 - `TokenIssuer` — signs access JWTs and rotates hashed refresh tokens
 
 Protected routes receive `AuthenticatedUser` via `@CurrentUser()`. Identity on login and refresh is `user: { id, email }` in the JSON body. There is no `GET /users/me`.

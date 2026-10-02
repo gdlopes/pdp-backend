@@ -9,23 +9,11 @@ import {
 } from 'typeorm';
 import UsersEntity from './users.entity';
 
-enum CurrentLevelEnum {
-  BEGINNER = 'BEGINNER',
-  INTERMEDIARY = 'INTERMEDIARY',
-  ADVANCED = 'ADVANCED',
-  EXPERT = 'EXPERT',
-}
-
-enum ExpectedLevelEnum {
-  ACHIEVE_NEXT_LEVEL = 'ACHIEVE_NEXT_LEVEL',
-  ENHANCE_CURRENT_LEVEL = 'ENHANCE_CURRENT_LEVEL',
-}
-
-enum ReviewCommitmentEnum {
-  DAILY = 'DAILY',
-  WEEKLY = 'WEEKLY',
-  BIWEEKLY = 'BIWEEKLY',
-  MONTHLY = 'MONTHLY',
+export enum ActionPlanStatusEnum {
+  NOT_STARTED = 'NOT_STARTED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  ARCHIVED = 'ARCHIVED',
 }
 
 @Entity({ name: 'action_plans' })
@@ -39,54 +27,23 @@ export default class ActionPlansEntity {
   @Column({ type: 'varchar' })
   title: string;
 
-  @Column({ type: 'varchar' })
-  goal: string;
-
-  @Column({ type: 'varchar', name: 'alignment_with_life_career' })
-  alignmentWithLifeCareer: string;
-
-  @Column({ type: 'varchar' })
-  motivation: string;
-
-  @Column({ type: 'enum', name: 'current_level', enum: CurrentLevelEnum })
-  currentLevel: string;
-
-  @Column({ type: 'enum', name: 'expected_level', enum: ExpectedLevelEnum })
-  expectedLevel: string;
-
   @Column({ type: 'varchar', name: 'specific_goal' })
   specificGoal: string;
 
-  @Column({ type: 'varchar', name: 'progress_tracking_method' })
-  progressTrackingMethod: string;
+  @Column({ type: 'timestamp' })
+  deadline: Date;
 
   @Column({ type: 'varchar' })
   resources: string;
 
-  @Column({ type: 'varchar', name: 'development_impact' })
-  developmentImpact: string;
-
-  @Column({ type: 'timestamp', name: 'estimated_completion_date' })
-  estimatedCompletionDate: Date;
-
-  @Column({ type: 'varchar', name: 'learning_method' })
-  learningMethod: string;
-
-  @Column({ type: 'varchar', name: 'time_commitment' })
-  timeCommitment: number;
-
-  @Column({ type: 'varchar', name: 'knowledge_application' })
-  knowledgeApplication: string;
+  @Column({ type: 'varchar', name: 'success_indicator' })
+  successIndicator: string;
 
   @Column({ type: 'varchar' })
   rewards: string;
 
-  @Column({
-    type: 'enum',
-    name: 'review_commitment',
-    enum: ReviewCommitmentEnum,
-  })
-  reviewCommitment: string;
+  @Column({ type: 'varchar', enum: ActionPlanStatusEnum })
+  status: ActionPlanStatusEnum;
 
   @CreateDateColumn({
     type: 'timestamp',
