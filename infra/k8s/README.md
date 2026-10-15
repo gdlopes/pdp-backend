@@ -45,8 +45,6 @@ kubectl wait --namespace argocd \
   --for=condition=available deployment/argocd-server --timeout=180s
 ```
 
-This GitHub repository is public, so Argo CD can clone it with no extra credentials.
-
 ### 5. Register the Application (manual sync)
 
 ```bash
@@ -72,15 +70,15 @@ echo
 
 The API Ingress stays on http://localhost:3000. The UI uses port-forward `8080` so the two do not share a host port.
 
-## CD (manual GitHub Actions)
+## CD (on merge to `main`)
 
-1. Actions → **CD - workflow** → **Run workflow** (pick the branch, usually `main`).
+1. Merge a pull request into `main` (that push starts **CD - workflow**).
 2. The job builds `--target production`, pushes `gdlopes/pdp-backend:<github.sha>` to Docker Hub, runs `kustomize edit set image` in `infra/k8s`, and commits `ci: pin pdp-backend image to <sha>` when `newTag` changed.
 3. In Argo CD: **Refresh** (poll is ~3 minutes) → Application is OutOfSync → **Sync**.
 
 The GitHub-hosted runner never talks to kind. CD only updates git and Docker Hub. Sync in the UI is what applies the cluster.
 
-Re-running CD on a commit whose tag is already pinned still pushes the image and skips the git commit.
+The follow-up Kustomize commit uses `GITHUB_TOKEN`, so it does **not** start another CD run. Pull requests still run **CI** only; they do not publish an image.
 
 ## Verify
 

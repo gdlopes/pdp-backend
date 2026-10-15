@@ -1,7 +1,9 @@
 name: CD - workflow
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 concurrency:
   group: cd-${{ github.ref }}

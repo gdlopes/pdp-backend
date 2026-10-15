@@ -1,33 +1,29 @@
 ## Purpose
 
-Publishes a SHA-tagged API image and records that tag in git so Argo CD can show OutOfSync, using a GitHub Actions workflow that is started only from the Actions UI.
+Publishes a SHA-tagged API image and records that tag in git so Argo CD can show OutOfSync, using a GitHub Actions workflow that runs when changes land on `main`.
 
 ## ADDED Requirements
 
-### Requirement: CD is a separate workflow started only from the Actions UI
+### Requirement: CD is a separate workflow that runs when main is updated
 
-Continuous delivery MUST live in a GitHub Actions workflow distinct from the pull-request CI workflow. The CD workflow MUST start only via `workflow_dispatch`. A push, a pull request, or a commit produced by CD MUST NOT start CD. The pull-request CI workflow MUST remain unchanged.
+Continuous delivery MUST live in a GitHub Actions workflow distinct from the pull-request CI workflow. The CD workflow MUST start on a push to `main` (including a merged pull request). Opening or updating a pull request MUST NOT start CD. A commit produced by CD that only updates the Kustomize image tag MUST NOT start a new CD run. The pull-request CI workflow MUST remain unchanged.
 
-#### Scenario: Operator starts CD from the Actions UI
+#### Scenario: Merged pull request starts CD
 
-- **WHEN** an operator runs the CD workflow from the GitHub Actions UI on a branch
-- **THEN** the CD workflow starts for that ref
+- **WHEN** a pull request is merged into `main`
+- **THEN** the CD workflow starts for the resulting commit on `main`
 
-#### Scenario: Push does not start CD
+#### Scenario: Open pull request does not start CD
 
-- **WHEN** a commit is pushed to `main` without `workflow_dispatch`
+- **WHEN** a contributor opens or updates a pull request whose base branch is `main`
 - **THEN** the CD workflow does not start
+- **AND** the existing CI workflow still runs lint, unit tests, e2e tests, and the production build
+- **AND** that CI workflow does not build or push a container image
 
 #### Scenario: CD commit does not start CD again
 
 - **WHEN** CD pushes a commit that only updates the Kustomize image tag
 - **THEN** that commit does not start a new CD run
-
-#### Scenario: Pull-request CI stays the quality gate
-
-- **WHEN** a pull request targets `main`
-- **THEN** the existing CI workflow still runs lint, unit tests, e2e tests, and the production build
-- **AND** that workflow does not build or push a container image
 
 ### Requirement: CD publishes a SHA-tagged image and records that tag in git
 

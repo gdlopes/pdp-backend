@@ -12,7 +12,7 @@ GitHub Actions cannot reach the local kind cluster. CD therefore updates git and
 
 - One Kustomize root as Argo CD's renderer, with a single `images.newTag` shared by API and migration.
 - Argo CD UI on the existing kind cluster with **manual** sync, so OutOfSync and the image-tag diff are visible.
-- A separate `workflow_dispatch` CD workflow that publishes `gdlopes/pdp-backend:<github.sha>` and commits that tag into Kustomize.
+- A separate CD workflow on push to `main` that publishes `gdlopes/pdp-backend:<github.sha>` and commits that tag into Kustomize.
 
 **Non-Goals:**
 
@@ -96,14 +96,14 @@ Order inside CD: build and push `:sha` first, then `kustomize edit set image gdl
 
 **Alternatives considered:** GHCR + `GITHUB_TOKEN` (simpler auth, but the image name and likely package visibility change; private GHCR needs pull secrets on kind). Short SHA (prettier, collision risk, weaker audit). Image updater watching Docker Hub (auto-writes git; hides the CD commit the operator is meant to see).
 
-### 5. CD workflow is `workflow_dispatch` only
+### 5. CD workflow runs on push to `main`
 
 New file `.github/workflows/cd.yaml`. Do not edit `ci.yaml`.
 
-- `on: workflow_dispatch` only (no `push`, no `pull_request`).
-- `concurrency.group: cd-${{ github.ref }}` with `cancel-in-progress: false` so two UI runs do not race the Kustomize commit.
-- `permissions.contents: write` for the follow-up commit; default `GITHUB_TOKEN` commits do not retrigger workflows (and CD would not retrigger anyway).
-- Checkout the ref selected in the Actions UI. Commit and push **that same ref**.
+- `on.push.branches: [main]` — a merged PR is a push to `main`, so `github.sha` is the commit actually on `main`. Do not use `pull_request: types: [closed]`; that event's SHA is the PR head, not the merge commit.
+- No `pull_request` trigger, so open PRs still only run CI.
+- `concurrency.group: cd-${{ github.ref }}` with `cancel-in-progress: false` so two merges do not race the Kustomize commit.
+- `permissions.contents: write` for the follow-up commit. Default `GITHUB_TOKEN` pushes do **not** start a new workflow run, so the pin commit cannot loop CD.
 - Commit as `GitHub Action` (`action@github.com`) with a Conventional Commit subject such as `ci: pin pdp-backend image to <sha>`.
 - Skip the git commit if `newTag` is already that SHA (idempotent re-run).
 - Fail before any git write if docker build or push fails.
@@ -111,7 +111,7 @@ New file `.github/workflows/cd.yaml`. Do not edit `ci.yaml`.
 
 The runner never calls `kubectl`. After CD, the operator Refresh + Sync in Argo (poll is ~3 minutes).
 
-**Alternatives considered:** fold publish into `ci.yaml` (mixes PR gates with deploy). `push` to `main` (what we want later in cloud, not for this study loop). Opening a PR for the tag bump (heavier than a bot commit on a practice repo).
+**Alternatives considered:** `workflow_dispatch` only (extra click after every merge). `pull_request` closed+merged (wrong SHA / checkout). Fold publish into `ci.yaml` (mixes PR gates with deploy). Opening a PR for the tag bump (heavier than a bot commit on a practice repo).
 
 ## Risks / Trade-offs
 
@@ -124,7 +124,7 @@ The runner never calls `kubectl`. After CD, the operator Refresh + Sync in Argo 
 
 ## Migration Plan
 
-- Land as one PR. After merge: create/reuse the kind cluster, install Argo CD, apply the Application, port-forward the UI, set `DOCKER_USERNAME` (variable) and `DOCKER_PASSWORD` (secret) on the GitHub repo, run CD once from the Actions UI, Refresh + Sync in Argo.
+- Land as one PR. Merging to `main` starts CD. After that: create/reuse the kind cluster, install Argo CD, apply the Application, port-forward the UI, set `DOCKER_USERNAME` (variable) and `DOCKER_PASSWORD` (secret) on the GitHub repo if missing, Refresh + Sync in Argo.
 - Rollback: delete the Application (Argo stops reconciling); optional `kind delete cluster`. Revert the PR to remove Kustomize, the CD workflow, and hook annotations. CI is untouched.
 - No application schema or API migration beyond the existing Job hook running `migration:run:prod` on Sync.
 
