@@ -1,0 +1,61 @@
+name: CD - workflow
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish image and pin tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: production
+          push: true
+          tags: gdlopes/pdp-backend:${{ github.sha }}
+
+      - name: Setup Kustomize
+        uses: imranismail/setup-kustomize@v1
+        with:
+          kustomize-version: "5.6.0"
+
+      - name: Pin image tag in Kustomize
+        working-directory: infra/k8s
+        run: |
+          if grep -qE "newTag: ['\"]?${{ github.sha }}['\"]?$" kustomization.yaml; then
+            echo "newTag already ${{ github.sha }}; skipping kustomize edit"
+            exit 0
+          fi
+          kustomize edit set image "gdlopes/pdp-backend:${{ github.sha }}"
+
+      - name: Commit image pin
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add infra/k8s/kustomization.yaml
+          git diff --staged --quiet && echo "No kustomization change; skipping commit" && exit 0
+          git commit -m "ci: pin pdp-backend image to ${{ github.sha }}"
+
+      - name: Push
+        run: git push
