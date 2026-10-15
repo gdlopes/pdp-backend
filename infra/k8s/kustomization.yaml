@@ -1,18 +1,18 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - namespace.yaml
-  - postgres-configmap.yaml
-  - postgres-secret.yaml
-  - postgres-service.yaml
-  - postgres-statefulset.yaml
-  - api-configmap.yaml
-  - api-secret.yaml
-  - migration-job.yaml
-  - api-deployment.yaml
-  - api-service.yaml
-  - ingress.yaml
-  - hpa.yaml
+- namespace.yaml
+- postgres-configmap.yaml
+- postgres-secret.yaml
+- postgres-service.yaml
+- postgres-statefulset.yaml
+- api-configmap.yaml
+- api-secret.yaml
+- migration-job.yaml
+- api-deployment.yaml
+- api-service.yaml
+- ingress.yaml
+- hpa.yaml
 images:
-  - name: gdlopes/pdp-backend
-    newTag: latest
+- name: gdlopes/pdp-backend
+  newTag: 51715fdf0baefe263502aa2636eba3c40236e948
