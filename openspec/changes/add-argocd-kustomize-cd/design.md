@@ -93,7 +93,7 @@ Argo waits for wave 0 to be healthy (Postgres Ready) before creating the Job. Th
 
 ### 4. Docker Hub + full `github.sha` as the image tag
 
-Keep `gdlopes/pdp-backend` and a **public** Docker Hub repo so kind can pull without `imagePullSecret`. CD logs in with `docker/login-action@v4`, repository variable `DOCKER_USERNAME`, and secret `DOCKER_PASSWORD` (a Docker Hub access token). The production image is built and pushed with `docker/setup-buildx-action` plus `docker/build-push-action@v6` (`target: production`, tag `${{ github.sha }}`). Do not also push `:latest` (two tags, Argo would ignore `latest` anyway).
+Keep `gdlopes/pdp-backend` and a **public** Docker Hub repo so kind can pull without `imagePullSecret`. CD logs in with `docker/login-action@v4`, repository variable `DOCKER_USERNAME`, and secret `DOCKER_PASSWORD` (a Docker Hub access token). The production image is built and pushed with `docker/setup-qemu-action`, `docker/setup-buildx-action`, and `docker/build-push-action@v6` (`target: production`, `platforms: linux/amd64,linux/arm64`, tag `${{ github.sha }}`) so kind on Apple Silicon can pull the same tag as an amd64 cluster. Do not also push `:latest` (two tags, Argo would ignore `latest` anyway).
 
 Order inside CD: build and push `:sha` first, then `kustomize edit set image gdlopes/pdp-backend:$SHA` in `infra/k8s`, then commit. The Kustomize commit has a different SHA; the image tag stays the **built** SHA.
 
