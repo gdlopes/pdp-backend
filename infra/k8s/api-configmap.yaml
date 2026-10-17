@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: pdp-api-config
   namespace: pdp
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 data:
   DATABASE_HOST: postgres
   DATABASE_PORT: "5432"

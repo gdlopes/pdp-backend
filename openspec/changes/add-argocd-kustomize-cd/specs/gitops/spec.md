@@ -39,9 +39,15 @@ Argo CD on the kind cluster MUST treat the Kustomize root as the Application sou
 - **WHEN** the Application manifest is inspected
 - **THEN** it does not enable automated sync
 
-### Requirement: Migration runs as a PreSync hook
+### Requirement: Migration runs as a Sync hook after Postgres
 
-The migration Job MUST be declared as an Argo CD PreSync hook with a delete policy that recreates the Job on the next Sync. A Sync MUST NOT fail because Kubernetes rejected an in-place Job spec update.
+The migration Job MUST be declared as an Argo CD Sync hook with a delete policy that recreates the Job on the next Sync. Postgres and the Job's ConfigMap/Secret MUST sync in an earlier wave than the Job. The API Deployment MUST sync in a later wave than the Job. A first Sync MUST NOT start the Job before Postgres is applied. A later Sync MUST NOT fail because Kubernetes rejected an in-place Job spec update.
+
+#### Scenario: First Sync applies Postgres before the migration Job
+
+- **WHEN** an operator Syncs an empty `pdp` namespace
+- **THEN** Argo CD applies Postgres (and the Job's config) before creating the migration Job
+- **AND** the Job does not run as a PreSync hook
 
 #### Scenario: Second Sync recreates the migration Job
 
