@@ -15,4 +15,4 @@ resources:
 - hpa.yaml
 images:
 - name: gdlopes/pdp-backend
-  newTag: 840b4a726ae5fa5bd966940c038169f915b8e1cd
+  newTag: 5b61d6492710ca05942209e83d4494dfed246584
