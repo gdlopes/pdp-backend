@@ -73,7 +73,7 @@ The API Ingress stays on http://localhost:3000. The UI uses port-forward `8080` 
 ## CD (on merge to `main`)
 
 1. Merge a pull request into `main` (that push starts **CD - workflow**).
-2. The job builds `--target production`, pushes `gdlopes/pdp-backend:<github.sha>` to Docker Hub, runs `kustomize edit set image` in `infra/k8s`, and commits `ci: pin pdp-backend image to <sha>` when `newTag` changed.
+2. The job builds `--target production` for `linux/amd64` and `linux/arm64`, pushes `gdlopes/pdp-backend:<github.sha>` to Docker Hub, runs `kustomize edit set image` in `infra/k8s`, and commits `ci: pin pdp-backend image to <sha>` when `newTag` changed. Argo deploys that `newTag`, not whatever commit is checked out locally.
 3. In Argo CD: **Refresh** (poll is ~3 minutes) → Application is OutOfSync → **Sync**.
 
 The GitHub-hosted runner never talks to kind. CD only updates git and Docker Hub. Sync in the UI is what applies the cluster.
