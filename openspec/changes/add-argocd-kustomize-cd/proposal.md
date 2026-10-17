@@ -6,7 +6,7 @@ The kind stack is a practice environment deployed with ordered `kubectl apply` a
 
 - Add a single `infra/k8s/kustomization.yaml` that lists cluster resources (excluding `kind-config.yaml`) and pins `gdlopes/pdp-backend` via `images.newTag`.
 - Install Argo CD on the existing kind cluster as bootstrap (same class as ingress-nginx). Point one Application at this repo path `infra/k8s` with Kustomize as the source and **manual** sync.
-- Treat the migration Job as an Argo PreSync hook so a Sync recreates it instead of trying to mutate an immutable Job.
+- Treat the migration Job as an Argo Sync hook (after Postgres via sync waves) so a Sync recreates it instead of trying to mutate an immutable Job, without running before Postgres exists.
 - Add a separate GitHub Actions workflow (not `ci.yaml`) triggered on push to `main` (merged PRs): build and push the production image tagged with the checkout `github.sha`, run `kustomize edit set image`, commit and push the tag change.
 - Document bootstrap vs CD vs Argo Sync in `infra/k8s/README.md`. Keep daily development on `docker-compose.dev.yml`.
 
@@ -14,7 +14,7 @@ The kind stack is a practice environment deployed with ordered `kubectl apply` a
 
 ### New Capabilities
 
-- `gitops`: Local kind GitOps with Kustomize as Argo CD's desired-state renderer, one Application on path `infra/k8s`, manual sync, and migration as a PreSync hook.
+- `gitops`: Local kind GitOps with Kustomize as Argo CD's desired-state renderer, one Application on path `infra/k8s`, manual sync, and migration as a Sync hook after Postgres.
 - `cd-pipeline`: A GitHub Actions CD workflow, separate from PR CI, started on push to `main`. It publishes a SHA-tagged image, updates `kustomization.yaml`, and pushes that commit so Argo can show OutOfSync.
 
 ### Modified Capabilities

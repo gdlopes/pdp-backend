@@ -112,7 +112,7 @@ kind delete cluster --name pdp-local
 | `postgres-statefulset.yaml` | StatefulSet + PVC |
 | `api-configmap.yaml` | API environment variables |
 | `api-secret.yaml` | Database password |
-| `migration-job.yaml` | Migration Job (Argo PreSync hook) |
+| `migration-job.yaml` | Migration Job (Argo Sync hook, after Postgres) |
 | `api-deployment.yaml` | API Deployment with probes |
 | `api-service.yaml` | ClusterIP :3000 |
 | `ingress.yaml` | Ingress `localhost:3000` |
