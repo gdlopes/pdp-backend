@@ -2,9 +2,9 @@
 
 - [x] 1.1 Add `infra/k8s/kustomization.yaml` listing the practice-stack manifests (namespace, Postgres, API, Job, Ingress, HPA, config, secrets) with `images.name: gdlopes/pdp-backend` and `newTag: latest`, omitting `kind-config.yaml`, and verify `kubectl kustomize infra/k8s` emits those objects, contains `gdlopes/pdp-backend:latest` on both the Deployment and the Job, and does not emit the kind Cluster spec
 
-## 2. Migration PreSync hook
+## 2. Migration Sync hook
 
-- [x] 2.1 Add Argo CD annotations `hook: PreSync` and `hook-delete-policy: BeforeHookCreation` on `infra/k8s/migration-job.yaml` without changing the wait-for-postgres initContainer, and verify the rendered Job from `kubectl kustomize infra/k8s` includes both annotations
+- [x] 2.1 Add Argo CD annotations `hook: Sync`, `sync-wave: "1"`, and `hook-delete-policy: BeforeHookCreation` on `infra/k8s/migration-job.yaml` without changing the wait-for-postgres initContainer, put Postgres and API config on wave `0` and the API workload on wave `2`, and verify the rendered Job from `kubectl kustomize infra/k8s` includes those annotations
 
 ## 3. Argo CD Application
 

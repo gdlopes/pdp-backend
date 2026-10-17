@@ -75,18 +75,21 @@ The GitHub repo is public, so Argo CD clones it with no repository credential Se
 
 **Alternatives considered:** Ingress `argocd.localhost` on port 3000 (host collision with the API). App-of-apps / Argo managing itself (needless for one Application). Helm source (the stack is already raw YAML).
 
-### 3. Migration Job as a PreSync hook
+### 3. Migration Job as a Sync hook after Postgres (not PreSync)
 
-On `migration-job.yaml`:
+PreSync runs **before** any application resources. On the first Sync that would start the Job while Postgres does not exist yet; `wait-for-postgres` loops forever.
+
+Use a **Sync** hook plus waves:
 
 ```
-argocd.argoproj.io/hook: PreSync
-argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+wave 0  namespace, Postgres, API config/secret
+wave 1  Job  hook: Sync, hook-delete-policy: BeforeHookCreation
+wave 2  API Deployment, Service, Ingress, HPA
 ```
 
-The existing `wait-for-postgres` initContainer stays. Sync then: delete previous hook Job if present → run migration at the new SHA → apply the rest. Without this, the second Sync tries to patch an immutable Job.
+Argo waits for wave 0 to be healthy (Postgres Ready) before creating the Job. The initContainer stays as a safety net. `BeforeHookCreation` still recreates the immutable Job on later Syncs.
 
-**Alternative considered:** keep the Job as a live resource and document `kubectl delete job` (fights GitOps; the README already does this today).
+**Alternatives considered:** PreSync (deadlock on first deploy). Keep the Job as a live resource and document `kubectl delete job` (fights GitOps).
 
 ### 4. Docker Hub + full `github.sha` as the image tag
 

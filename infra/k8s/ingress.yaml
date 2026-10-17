@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: pdp-api
   namespace: pdp
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   ingressClassName: nginx
   rules:
