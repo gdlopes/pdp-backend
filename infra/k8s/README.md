@@ -111,7 +111,7 @@ kind delete cluster --name pdp-local
 | `postgres-service.yaml` | Headless Service |
 | `postgres-statefulset.yaml` | StatefulSet + PVC |
 | `api-configmap.yaml` | API environment variables |
-| `api-secret.yaml` | Database password |
+| `api-secret.yaml` | Database password and JWT_ACCESS_SECRET |
 | `migration-job.yaml` | Migration Job (Argo Sync hook, after Postgres) |
 | `api-deployment.yaml` | API Deployment with probes |
 | `api-service.yaml` | ClusterIP :3000 |
