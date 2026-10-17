@@ -59,7 +59,7 @@ Install Argo CD once on kind, same class as ingress-nginx / metrics-server: crea
 spec:
   source:
     repoURL: https://github.com/gdlopes/pdp-backend.git
-    targetRevision: HEAD
+    targetRevision: main
     path: infra/k8s
   destination:
     server: https://kubernetes.default.svc

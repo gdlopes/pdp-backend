@@ -8,7 +8,7 @@
 
 ## 3. Argo CD Application
 
-- [x] 3.1 Add `infra/argocd/application.yaml` for Application `pdp` in namespace `argocd`, source repo `https://github.com/gdlopes/pdp-backend.git` path `infra/k8s` revision `HEAD`, destination in-cluster namespace `pdp`, `CreateNamespace=true`, and no `automated` sync policy, and verify the file is not listed in `infra/k8s/kustomization.yaml` and that YAML has no `syncPolicy.automated` key
+- [x] 3.1 Add `infra/argocd/application.yaml` for Application `pdp` in namespace `argocd`, source repo `https://github.com/gdlopes/pdp-backend.git` path `infra/k8s` revision `main`, destination in-cluster namespace `pdp`, `CreateNamespace=true`, and no `automated` sync policy, and verify the file is not listed in `infra/k8s/kustomization.yaml` and that YAML has no `syncPolicy.automated` key
 
 ## 4. CD workflow
 
